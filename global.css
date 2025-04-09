@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*------Set up sử dụng các màu------*/
+
+.bg-screen {
+  background-color: #fffdf8;
+}
+
+.bg-screen-secondary {
+  background-color: #f9f3e6;
+}
+
+/* Màu xanh #3182CE */
+.bg-primary {
+  background-color: #3182ce;
+}
+.text-primary {
+  color: #3182ce;
+}
+
+/* Màu cam #FF7551 */
+.bg-secondary {
+  background-color: #ff7551;
+}
+
+.text-secondary {
+  color: #ff7551;
+}
+
+/* Màu đỏ (error) #E53E3E */
+.bg-error {
+  background-color: #e53e3e;
+}
+
+.text-error {
+  color: #e53e3e;
+}
+/* Màu xanh lá cây (success) #38A169 */
+.bg-success {
+  background-color: #38a169;
+}
+.text-success {
+  color: #38a169;
+}
+
+/* Màu cho các ListItem ở home page */
+.bg-used {
+  background-color: #38a169;
+}
+
+.bg-unused {
+  background-color: #ff7551;
+}
