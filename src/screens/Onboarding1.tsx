@@ -14,7 +14,7 @@ type NavigationProp = NativeStackNavigationProp<
 
 const Onboarding1 = () => {
   const navigation = useNavigation<NavigationProp>();
-  const [hasSeenBefore, setHasSeenBefore] = useState<boolean | null>(null);
+  // const [hasSeenBefore, setHasSeenBefore] = useState<boolean | null>(null);
 
   // const resetOnboarding = async () => {
   //   await AsyncStorage.clear(); // Xóa dữ liệu AsyncStorage để kiểm tra lại
@@ -25,26 +25,30 @@ const Onboarding1 = () => {
   useEffect(() => {
     const checkIfSeen = async () => {
       const value = await AsyncStorage.getItem("hasSeenOnboarding");
-      if (!value || value === "false") {
-        setHasSeenBefore(false);
-      } else if (value === "true") {
-        setHasSeenBefore(true);
+      // if (!value || value === "false") {
+      //   setHasSeenBefore(false);
+      // } else if (value === "true") {
+      //   setHasSeenBefore(true);
+      // }
+      if (value && value === "true") {
+        navigation.navigate("Login");
       }
     };
     checkIfSeen();
   }, []);
 
-  if (hasSeenBefore === null) {
-    // Có thể render loading, hoặc để trống khi chưa biết trạng thái
-    return null;
-  }
+  // if (hasSeenBefore === null) {
+  //   // Có thể render loading, hoặc để trống khi chưa biết trạng thái
+  //   return null;
+  // }
 
   const handlePress = () => {
-    if (hasSeenBefore) {
-      navigation.navigate("Login");
-    } else {
-      navigation.navigate("Onboarding2");
-    }
+    // if (hasSeenBefore) {
+    //   navigation.navigate("Login");
+    // } else {
+    //   navigation.navigate("Onboarding2");
+    // }
+    navigation.navigate("Onboarding2");
   };
 
   return (
@@ -78,7 +82,8 @@ const Onboarding1 = () => {
           onPress={handlePress}
         >
           <Text className="text-center text-white text-xl font-semibold">
-            {hasSeenBefore ? "Đăng nhập" : "Bắt đầu nào!"}
+            {/* {hasSeenBefore ? "Đăng nhập" : "Bắt đầu nào!"} */}
+            Bắt đầu nào!
           </Text>
         </TouchableOpacity>
       </View>
