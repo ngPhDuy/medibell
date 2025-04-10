@@ -5,7 +5,6 @@ import "../../global.css";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/AppNavigator";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type NavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -16,40 +15,25 @@ const Onboarding1 = () => {
   const navigation = useNavigation<NavigationProp>();
   // const [hasSeenBefore, setHasSeenBefore] = useState<boolean | null>(null);
 
-  // const resetOnboarding = async () => {
-  //   await AsyncStorage.clear(); // Xóa dữ liệu AsyncStorage để kiểm tra lại
-  // };
-
-  // resetOnboarding(); // Gọi hàm này để xóa dữ liệu AsyncStorage (chỉ dùng cho mục đích kiểm tra)
-
-  useEffect(() => {
-    const checkIfSeen = async () => {
-      const value = await AsyncStorage.getItem("hasSeenOnboarding");
-      // if (!value || value === "false") {
-      //   setHasSeenBefore(false);
-      // } else if (value === "true") {
-      //   setHasSeenBefore(true);
-      // }
-      if (value && value === "true") {
-        navigation.navigate("Login");
-      }
-    };
-    checkIfSeen();
-  }, []);
+  // useEffect(() => {
+  //   const checkIfSeen = async () => {
+  //     const value = await AsyncStorage.getItem("hasSeenOnboarding");
+  //     // if (!value || value === "false") {
+  //     //   setHasSeenBefore(false);
+  //     // } else if (value === "true") {
+  //     //   setHasSeenBefore(true);
+  //     // }
+  //     if (value && value === "true") {
+  //       navigation.navigate("Login");
+  //     }
+  //   };
+  //   checkIfSeen();
+  // }, []);
 
   // if (hasSeenBefore === null) {
   //   // Có thể render loading, hoặc để trống khi chưa biết trạng thái
   //   return null;
   // }
-
-  const handlePress = () => {
-    // if (hasSeenBefore) {
-    //   navigation.navigate("Login");
-    // } else {
-    //   navigation.navigate("Onboarding2");
-    // }
-    navigation.navigate("Onboarding2");
-  };
 
   return (
     <View className="flex-1 justify-center items-center bg-screen">
@@ -79,10 +63,11 @@ const Onboarding1 = () => {
 
         <TouchableOpacity
           className="mt-8 p-4 w-[24rem] bg-primary rounded-[20px]"
-          onPress={handlePress}
+          onPress={() => {
+            navigation.navigate("Onboarding2");
+          }}
         >
           <Text className="text-center text-white text-xl font-semibold">
-            {/* {hasSeenBefore ? "Đăng nhập" : "Bắt đầu nào!"} */}
             Bắt đầu nào!
           </Text>
         </TouchableOpacity>

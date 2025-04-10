@@ -20,8 +20,8 @@ import type { RootStackParamList } from "../navigation/AppNavigator";
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, "Login">;
 
 const Login = () => {
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [password, setPassword] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("123");
+  const [password, setPassword] = useState("456");
   const [isSecureEntry, setIsSecureEntry] = useState(true);
   const [isModalVisible, setIsModalVisible] = useState(false); // State for modal visibility
   const [modalProps, setModalProps] = useState({
