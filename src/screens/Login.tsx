@@ -5,9 +5,7 @@ import {
   TouchableOpacity,
   Image,
   ScrollView,
-  TextInput,
-  Modal,
-  TouchableWithoutFeedback,
+  ActivityIndicator,
 } from "react-native";
 import "../../global.css";
 import AntDesign from "react-native-vector-icons/AntDesign";
@@ -32,6 +30,7 @@ const Login = () => {
     bgColorClassName: "bg-error",
     animationType: "fade" as "fade",
   });
+  const [loading, setLoading] = useState(true);
 
   const navigation = useNavigation<NavigationProp>();
 
@@ -45,7 +44,8 @@ const Login = () => {
         setIsModalVisible(true);
         setModalProps({
           ...modalProps,
-          message: "Thông tin đăng nhập không đúng (Nhập vào 123 và 456)",
+          message:
+            "Thông tin đăng nhập không đúng (Nhập vào 123 và 456 để đăng nhập)",
           icon: <Octicons name="shield-x" size={50} color="#ffffff" />,
           bgColorClassName: "bg-error",
         });
@@ -59,7 +59,8 @@ const Login = () => {
       // Thiếu thông tin đăng nhập
       setModalProps({
         ...modalProps,
-        message: "Vui lòng nhập đầy đủ thông tin (Nhập vào 123 và 456)",
+        message:
+          "Vui lòng nhập đầy đủ thông tin (Nhập vào 123 và 456 để đăng nhập)",
         icon: <Octicons name="shield-x" size={50} color="#ffffff" />,
         bgColorClassName: "bg-error",
       });
@@ -69,10 +70,25 @@ const Login = () => {
   return (
     <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
       <View className="flex-1 justify-center items-center p-4">
-        <Image
+        {/* <Image
           source={require("../../assets/imgs/medibell.png")}
           className="w-80 h-48"
-        />
+        /> */}
+        <View className="w-80 h-48 justify-center items-center relative">
+          {loading && (
+            <ActivityIndicator
+              size="large"
+              color="#00BFFF"
+              style={{ position: "absolute", zIndex: 1 }}
+            />
+          )}
+          <Image
+            source={require("../../assets/imgs/medibell.png")}
+            className="w-80 h-48"
+            onLoadStart={() => setLoading(true)}
+            onLoadEnd={() => setLoading(false)}
+          />
+        </View>
         <Text className="text-2xl text-black font-semibold mb-4 text-center">
           Mừng bạn trở lại!
         </Text>

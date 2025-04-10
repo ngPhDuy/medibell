@@ -6,6 +6,7 @@ import { useNavigation } from "@react-navigation/native";
 import ProgressBar from "../components/ProgressBar";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/AppNavigator";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type NavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -15,6 +16,11 @@ type NavigationProp = NativeStackNavigationProp<
 const Onboarding4 = () => {
   const navigation = useNavigation<NavigationProp>();
   const id: number = 1;
+
+  const handlePress = async () => {
+    await AsyncStorage.setItem("hasSeenOnboarding", "true");
+    navigation.navigate("Login");
+  };
 
   return (
     <View className="flex-1 justify-center items-center bg-screen">
@@ -53,7 +59,7 @@ const Onboarding4 = () => {
         {/* Button Section */}
         <TouchableOpacity
           className="mt-8 p-4 w-[24rem] bg-primary rounded-[20px]"
-          onPress={() => navigation.navigate("Login")}
+          onPress={handlePress}
         >
           <Text className="text-center text-white text-xl font-semibold">
             Trải nghiệm ngay
