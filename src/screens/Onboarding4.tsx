@@ -2,11 +2,12 @@ import React from "react";
 import { View, Text, TouchableOpacity, Image } from "react-native";
 import "../../global.css";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, CommonActions } from "@react-navigation/native";
 import ProgressBar from "../components/ProgressBar";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/AppNavigator";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useOnboarding } from "../contexts/OnboardingContext";
 
 type NavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -16,10 +17,18 @@ type NavigationProp = NativeStackNavigationProp<
 const Onboarding4 = () => {
   const navigation = useNavigation<NavigationProp>();
   const id: number = 1;
+  const { setHasSeenOnboarding } = useOnboarding();
 
   const handlePress = async () => {
-    await AsyncStorage.setItem("hasSeenOnboarding", "true");
-    navigation.navigate("Login");
+    console.log("Đã nhấn nút Trải nghiệm ngay");
+    setHasSeenOnboarding(true);
+
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: "Login" }],
+      })
+    );
   };
 
   return (
