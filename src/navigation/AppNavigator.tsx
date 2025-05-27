@@ -9,6 +9,7 @@ import Login from "../screens/Login";
 import HomePage from "../screens/HomePage";
 import MedicineLibrary from "../screens/MedicineLibrary";
 import AddMedicine from "../screens/AddMedicine";
+import Register from "../screens/Register";
 import { useOnboarding } from "../contexts/OnboardingContext";
 
 export type RootStackParamList = {
@@ -20,6 +21,7 @@ export type RootStackParamList = {
   HomePage: undefined;
   MedicineLibrary: undefined;
   AddMedicine: undefined;
+  Register: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -38,10 +40,11 @@ export default function AppNavigator() {
             <Stack.Screen name="Onboarding4" component={Onboarding4} />
           </>
         )}
+        <Stack.Screen name="Register" component={Register} />
+        <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="HomePage" component={HomePage} />
         <Stack.Screen name="AddMedicine" component={AddMedicine} />
         <Stack.Screen name="MedicineLibrary" component={MedicineLibrary} />
-        <Stack.Screen name="Login" component={Login} />
       </Stack.Navigator>
     </NavigationContainer>
   );

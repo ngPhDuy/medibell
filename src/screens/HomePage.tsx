@@ -39,7 +39,9 @@ const HomePage = ({ navigation }: any) => {
         </TouchableOpacity>
       </View>
 
-      <DatesTab onDateSelect={setSelectedDay} />
+      <View className="flex-row justify-between items-center mt-2">
+        <DatesTab onDateSelect={setSelectedDay} />
+      </View>
 
       <ScrollView className="flex-1 mt-4 px-4 w-full">
         <View className="flex-col gap-2 mb-4">
