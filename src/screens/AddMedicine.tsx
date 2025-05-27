@@ -14,9 +14,9 @@ import { Feather, AntDesign } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import NavBar from "../components/NavBar";
-import CustomDropDown from '../components/CustomDropDown';
+import CustomDropDown from "../components/CustomDropDown";
 
-const AddMedicine = () => {
+const AddMedicine = ({ navigation }: any) => {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [form, setForm] = useState<string>(""); // Dạng chọn
@@ -24,7 +24,9 @@ const AddMedicine = () => {
   const [desc, setDesc] = useState("");
   const [descHeight, setDescHeight] = useState(40);
   const [usage, setUsage] = useState("");
-  const [components, setComponents] = useState([{ id: 1, name: "", amount: "" }]);
+  const [components, setComponents] = useState([
+    { id: 1, name: "", amount: "" },
+  ]);
 
   const packInputRef = useRef<TextInput>(null);
 
@@ -152,14 +154,14 @@ const AddMedicine = () => {
               </View>
 
               {/* Quy chế */}
-              <View style={{ flex: 0.8, marginTop: 8  }}>
+              <View style={{ flex: 0.8, marginTop: 8 }}>
                 <Text style={styles.label}>Quy chế</Text>
                 <TextInput
                   ref={packInputRef}
                   placeholder="Hộp 15 Vỉ x 12 Viên"
                   value={pack}
                   onChangeText={setPack}
-                  style={[styles.textInput, {height:45, paddingLeft: 8}]}
+                  style={[styles.textInput, { height: 45, paddingLeft: 8 }]}
                 />
               </View>
             </View>
@@ -271,13 +273,18 @@ const AddMedicine = () => {
       </TouchableOpacity>
 
       {/* NavBar */}
-      <NavBar activeTab="library" iconSize={20} />
+      <NavBar activeTab="library" iconSize={20} navigation={navigation} />
     </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff", paddingHorizontal: 16, paddingTop: 40 },
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+    paddingHorizontal: 16,
+    paddingTop: 40,
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",

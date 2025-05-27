@@ -11,7 +11,7 @@ import { FontAwesome5, AntDesign, Feather, Ionicons } from "@expo/vector-icons";
 import "../../global.css";
 import ListMedicine from "../components/ListMedicine";
 
-const MedicineLibrary = () => {
+const MedicineLibrary = ({ navigation }: any) => {
   const [searchQuery, setSearchQuery] = useState("");
 
   const data = [
@@ -20,7 +20,7 @@ const MedicineLibrary = () => {
       name: "Phosphalugel Sanofi",
       description:
         "Thuốc Phosphalugel là loại thuốc kháng acid (antacid) được dùng khá phổ biến để giúp...",
-     image: require("../../assets/imgs/phosphalugel.png"),
+      image: require("../../assets/imgs/phosphalugel.png"),
     },
   ];
 
@@ -37,43 +37,48 @@ const MedicineLibrary = () => {
         </TouchableOpacity>
       </View>
 
-    {/* Search Bar */}
-    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-    <View
-        style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#f0f0f0',
-        borderRadius: 12,
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        flex: 1,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-        elevation: 2,
-        }}
-    >
-        <Feather name="search" size={18} color="black" style={{ marginRight: 6 }} />
-        <TextInput
-        style={{ flex: 1, fontSize: 14, color: '#333' }}
-        placeholder="Nhấn Enter để tìm kiếm"
-        placeholderTextColor="#999"
-        value={searchQuery}
-        onChangeText={setSearchQuery}
-        returnKeyType="search"
-        />
-    </View>
+      {/* Search Bar */}
+      <View style={{ flexDirection: "row", alignItems: "center" }}>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            backgroundColor: "#f0f0f0",
+            borderRadius: 12,
+            paddingHorizontal: 12,
+            paddingVertical: 8,
+            flex: 1,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.1,
+            shadowRadius: 3,
+            elevation: 2,
+          }}
+        >
+          <Feather
+            name="search"
+            size={18}
+            color="black"
+            style={{ marginRight: 6 }}
+          />
+          <TextInput
+            style={{ flex: 1, fontSize: 14, color: "#333" }}
+            placeholder="Nhấn Enter để tìm kiếm"
+            placeholderTextColor="#999"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            returnKeyType="search"
+          />
+        </View>
 
-    <Feather
-        name="filter"
-        size={18}
-        color="black"
-        style={{ marginLeft: 12, marginRight: 8 }}
-    />
-    <Ionicons name="swap-vertical" size={20} color="black" />
-    </View>
+        <Feather
+          name="filter"
+          size={18}
+          color="black"
+          style={{ marginLeft: 12, marginRight: 8 }}
+        />
+        <Ionicons name="swap-vertical" size={20} color="black" />
+      </View>
 
       <Text className="mt-4 mb-2 text-base text-black font-semibold">
         1 kết quả
@@ -89,9 +94,8 @@ const MedicineLibrary = () => {
         ))}
       </ScrollView>
 
-
       {/* Bottom NavBar */}
-      <NavBar activeTab="library" iconSize={20} />
+      <NavBar activeTab="library" iconSize={20} navigation={navigation} />
     </View>
   );
 };

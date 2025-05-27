@@ -5,9 +5,14 @@ import { FontAwesome5 } from "@expo/vector-icons";
 interface NavBarProps {
   activeTab: "home" | "report" | "library" | "";
   iconSize?: number;
+  navigation: any; // Adjust type as needed
 }
 
-const NavBar: React.FC<NavBarProps> = ({ activeTab, iconSize = 24 }) => {
+const NavBar: React.FC<NavBarProps> = ({
+  activeTab,
+  iconSize = 24,
+  navigation,
+}) => {
   return (
     <View className="w-full flex-row justify-evenly items-center bg-screen pt-2 border-t-2 border-gray-200">
       {/* Home Button */}
@@ -15,6 +20,7 @@ const NavBar: React.FC<NavBarProps> = ({ activeTab, iconSize = 24 }) => {
         className={`justify-center items-center ${
           activeTab === "home" ? "bg-primary rounded-full" : ""
         }`}
+        onPress={() => navigation.navigate("HomePage")}
       >
         <FontAwesome5
           name="home"
@@ -29,6 +35,7 @@ const NavBar: React.FC<NavBarProps> = ({ activeTab, iconSize = 24 }) => {
         className={`justify-center items-center ${
           activeTab === "report" ? "bg-primary rounded-full" : ""
         }`}
+        // onPress={() => navigation.navigate("Report")}
       >
         <FontAwesome5
           name="file-alt"
@@ -43,6 +50,7 @@ const NavBar: React.FC<NavBarProps> = ({ activeTab, iconSize = 24 }) => {
         className={`justify-center items-center ${
           activeTab === "library" ? "bg-primary rounded-full" : ""
         }`}
+        onPress={() => navigation.navigate("AddMedicine")}
       >
         <FontAwesome5
           name="briefcase-medical"

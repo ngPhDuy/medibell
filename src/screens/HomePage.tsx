@@ -6,7 +6,7 @@ import { FontAwesome5, AntDesign } from "@expo/vector-icons";
 import DatesTab from "../components/DatesTab";
 import "../../global.css";
 
-const HomePage = () => {
+const HomePage = ({ navigation }: any) => {
   return (
     <View className="flex-1 bg-screen justify-center items-center py-4">
       <View className="w-full flex-row justify-between items-center px-4 pt-10 mb-4">
@@ -64,7 +64,7 @@ const HomePage = () => {
       </ScrollView>
 
       {/* NavBar */}
-      <NavBar activeTab="home" iconSize={20} />
+      <NavBar activeTab="home" iconSize={20} navigation={navigation} />
     </View>
   );
 };

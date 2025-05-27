@@ -25,13 +25,11 @@ export type RootStackParamList = {
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function AppNavigator() {
-  const { hasSeenOnboarding } = useOnboarding()
+  const { hasSeenOnboarding } = useOnboarding();
 
   return (
     <NavigationContainer>
-      <Stack.Navigator 
-        screenOptions={{ headerShown: false }}
-      >
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
         {!hasSeenOnboarding && (
           <>
             <Stack.Screen name="Onboarding1" component={Onboarding1} />
@@ -40,11 +38,10 @@ export default function AppNavigator() {
             <Stack.Screen name="Onboarding4" component={Onboarding4} />
           </>
         )}
+        <Stack.Screen name="HomePage" component={HomePage} />
         <Stack.Screen name="AddMedicine" component={AddMedicine} />
         <Stack.Screen name="MedicineLibrary" component={MedicineLibrary} />
         <Stack.Screen name="Login" component={Login} />
-        <Stack.Screen name="HomePage" component={HomePage} />
-
       </Stack.Navigator>
     </NavigationContainer>
   );
