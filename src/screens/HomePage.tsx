@@ -4,9 +4,15 @@ import NavBar from "../components/NavBar";
 import ListItem from "../components/ListItem";
 import { FontAwesome5, AntDesign } from "@expo/vector-icons";
 import DatesTab from "../components/DatesTab";
+import { DateType } from "react-native-ui-datepicker";
 import "../../global.css";
 
 const HomePage = ({ navigation }: any) => {
+  let today = new Date();
+  const [selectedDay, setSelectedDay] = useState<DateType>(
+    new Date(today.getFullYear(), today.getMonth(), today.getDate())
+  );
+
   return (
     <View className="flex-1 bg-screen justify-center items-center py-4">
       <View className="w-full flex-row justify-between items-center px-4 pt-10 mb-4">
@@ -33,7 +39,7 @@ const HomePage = ({ navigation }: any) => {
         </TouchableOpacity>
       </View>
 
-      <DatesTab />
+      <DatesTab onDateSelect={setSelectedDay} />
 
       <ScrollView className="flex-1 mt-4 px-4 w-full">
         <View className="flex-col gap-2 mb-4">

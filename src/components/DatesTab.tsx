@@ -1,55 +1,111 @@
-import React from "react";
-import { View, Text } from "react-native";
-import "../../global.css";
+import React, { useState, useEffect, useRef } from "react";
+import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import moment from "moment";
 
-const DatesTab: React.FC = () => {
-  // Lấy ngày hiện tại
-  const currentDate = new Date();
-  const dayOfWeek = currentDate.getDay(); // 0: Chủ Nhật, 1: Thứ Hai, ..., 6: Thứ Bảy
-  const day = currentDate.getDate();
-  const month = currentDate.getMonth() + 1; // Tháng trong JS bắt đầu từ 0
-  const year = currentDate.getFullYear();
+interface DatePickerProps {
+  onDateSelect: (date: string) => void;
+  initialDate?: string; // Ngày được chọn ban đầu (tùy chọn)
+}
 
-  // Tên các ngày trong tuần
-  const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  const datesOfWeek = ["9", "3", "4", "5", "6", "7", "8"]; // Các ngày trong tuần, có thể thay đổi
+const DatesTab: React.FC<DatePickerProps> = ({ onDateSelect, initialDate }) => {
+  const [selectedDate, setSelectedDate] = useState<string>(
+    initialDate || moment().format("YYYY-MM-DD")
+  );
+  const [calendarDays, setCalendarDays] = useState<any[]>([]);
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  useEffect(() => {
+    const today = moment();
+    const startDate = today.clone().subtract(15, "days");
+    const endDate = today.clone().add(15, "days");
+    const daysArray = [];
+
+    let currentDate = startDate.clone();
+
+    while (currentDate.isSameOrBefore(endDate)) {
+      daysArray.push({
+        ngay_lam_viec: currentDate.format("YYYY-MM-DD"),
+        thu: currentDate.format("ddd"), // Thứ trong tuần (ví dụ: Mon, Tue)
+        date: currentDate.format("D"), // Ngày trong tháng
+      });
+      currentDate.add(1, "day");
+    }
+
+    setCalendarDays(daysArray);
+    setTimeout(() => {
+      const todayIndex = daysArray.findIndex(
+        (d) => d.ngay_lam_viec === today.format("YYYY-MM-DD")
+      );
+      if (todayIndex !== -1 && scrollViewRef.current) {
+        scrollViewRef.current.scrollTo({
+          x: (todayIndex - 1) * 58,
+          animated: true,
+        });
+        // 80 là chiều rộng ước lượng của mỗi ô (w-16 ~ 64px + margin)
+      }
+    }, 100);
+  }, []);
+
+  const handleDayPress = (date: string) => {
+    setSelectedDate(date);
+    onDateSelect(date);
+  };
+
+  const todayFormatted = moment().format("DD [tháng] MM");
+  const selectedDateFormatted = moment(selectedDate).format("DD [tháng] MM");
 
   return (
-    <View className="px-4 py-4 bg-screen-secondary w-full">
-      {/* Hiển thị các ngày trong tuần */}
-      <View className="flex-row justify-between items-center">
-        {daysOfWeek.map((dayName, index) => {
-          const isActive = dayOfWeek === index; // Kiểm tra xem ngày hiện tại có phải là ngày này không
-          return (
-            <View
-              key={index}
-              className={`items-center ${
-                isActive ? "bg-primary rounded-full" : ""
-              } p-2`}
-            >
-              <Text
-                className={`text-sm font-semibold ${
-                  isActive ? "text-white" : "text-black"
+    <View className="mb-1 bg-blue-50 p-3">
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        ref={scrollViewRef}
+        className="mb-2"
+      >
+        <View className="flex-row">
+          {calendarDays.map((day) => (
+            <View key={day.ngay_lam_viec} className="items-center mr-2">
+              <TouchableOpacity
+                onPress={() => handleDayPress(day.ngay_lam_viec)}
+                className={`rounded-full w-16 h-16 items-center justify-center ${
+                  selectedDate === day.ngay_lam_viec
+                    ? "bg-blue-500"
+                    : "bg-blue-100"
                 }`}
               >
-                {dayName}
-              </Text>
-              <Text
-                className={`text-xs font-semibold ${
-                  isActive ? "text-white" : "text-black"
-                }`}
-              >
-                {datesOfWeek[index]}
-              </Text>
+                <Text
+                  className={`text-sm font-semibold ${
+                    selectedDate === day.ngay_lam_viec
+                      ? "text-white"
+                      : "text-gray-700"
+                  }`}
+                >
+                  {day.thu}
+                </Text>
+                <Text
+                  className={`text-sm font-semibold ${
+                    selectedDate === day.ngay_lam_viec
+                      ? "text-white"
+                      : "text-gray-700"
+                  }`}
+                >
+                  {day.date}
+                </Text>
+              </TouchableOpacity>
             </View>
-          );
-        })}
-      </View>
+          ))}
+        </View>
+      </ScrollView>
 
-      {/* Hiển thị ngày hôm nay */}
-      <Text className="text-center mt-2 text-primary font-semibold text-base">
-        Hôm nay, {day} tháng {month} {year}
-      </Text>
+      {selectedDate !== moment().format("YYYY-MM-DD") ? (
+        <Text className="text-center text-blue-500 text-sm">
+          {`Đã chọn: ${selectedDateFormatted}`}
+        </Text>
+      ) : (
+        <Text className="text-center text-blue-500 text-sm">
+          {`Hôm nay, ${todayFormatted}`}
+        </Text>
+      )}
     </View>
   );
 };
