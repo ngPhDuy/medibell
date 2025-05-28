@@ -8,15 +8,15 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
-import "../../global.css";
+import "../../../global.css";
 import AntDesign from "react-native-vector-icons/AntDesign";
 import Octicons from "react-native-vector-icons/Octicons";
 import { Ionicons } from "@expo/vector-icons";
-import CustomTextInput from "../components/CustomTextInput";
-import CustomModal from "../components/CustomModal";
+import CustomTextInput from "../../components/CustomTextInput";
+import CustomModal from "../../components/CustomModal";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import type { RootStackParamList } from "../navigation/AppNavigator";
+import type { RootStackParamList } from "../../navigation/AppNavigator";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, "Register">;
 
@@ -78,14 +78,16 @@ const Register = () => {
             />
           )}
           <Image
-            source={require("../../assets/imgs/medibell.png")}
+            source={require("../../../assets/imgs/medibell.png")}
             className="w-80 h-48"
             onLoadStart={() => setLoading(true)}
             onLoadEnd={() => setLoading(false)}
           />
         </View>
 
-        <Text className="text-3xl text-black font-bold mb-2">Tạo tài khoản</Text>
+        <Text className="text-3xl text-black font-bold mb-2">
+          Tạo tài khoản
+        </Text>
         <Text className="text-md text-[#6B7280] mb-8 text-center">
           Mong rằng chúng tôi sẽ giúp được bạn
         </Text>
@@ -166,7 +168,7 @@ const Register = () => {
         <View className="w-[24rem] justify-center items-center gap-2 mb-6">
           <TouchableOpacity className="flex-row items-center justify-center p-3 border border-gray-300 rounded-lg w-full bg-white">
             <Image
-              source={require("../../assets/imgs/gg_logo.png")}
+              source={require("../../../assets/imgs/gg_logo.png")}
               className="w-4 h-4 mr-3"
             />
             <Text className="text-sm font-medium text-gray-700">
@@ -175,7 +177,7 @@ const Register = () => {
           </TouchableOpacity>
           <TouchableOpacity className="flex-row items-center justify-center p-3 border border-gray-300 rounded-lg w-full bg-white">
             <Image
-              source={require("../../assets/imgs/fb_logo.png")}
+              source={require("../../../assets/imgs/fb_logo.png")}
               className="w-4 h-4 mr-3"
             />
             <Text className="text-sm font-medium text-gray-700">

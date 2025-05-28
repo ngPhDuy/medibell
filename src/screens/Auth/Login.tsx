@@ -7,23 +7,23 @@ import {
   ScrollView,
   ActivityIndicator,
 } from "react-native";
-import "../../global.css";
+import "../../../global.css";
 import AntDesign from "react-native-vector-icons/AntDesign";
 import Octicons from "react-native-vector-icons/Octicons";
 import { Ionicons } from "@expo/vector-icons";
-import CustomTextInput from "../components/CustomTextInput";
-import CustomModal from "../components/CustomModal";
-import { useNavigation } from "@react-navigation/native";
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import type { RootStackParamList } from "../navigation/AppNavigator";
-
-type NavigationProp = NativeStackNavigationProp<RootStackParamList, "Login">;
+import CustomTextInput from "../../components/CustomTextInput";
+import CustomModal from "../../components/CustomModal";
+import { loginUser } from "../../api/Auth";
+import { useAuth } from "../../contexts/AuthContext";
 
 const Login = () => {
+  const { login } = useAuth();
   const [phoneNumber, setPhoneNumber] = useState("123");
   const [password, setPassword] = useState("456");
+
   const [isSecureEntry, setIsSecureEntry] = useState(true);
   const [isModalVisible, setIsModalVisible] = useState(false); // State for modal visibility
+
   const [modalProps, setModalProps] = useState({
     message: "Vui lòng nhập đầy đủ thông tin",
     icon: <Octicons name="shield-x" size={50} color="#ffffff" />,
@@ -32,26 +32,24 @@ const Login = () => {
   });
   const [loading, setLoading] = useState(true);
 
-  const navigation = useNavigation<NavigationProp>();
-
-  const handleLogin = () => {
-    // Simulate login action
+  const handleLogin = async () => {
+    setLoading(true);
     if (phoneNumber !== "" && password !== "") {
       console.log("Có thông tin");
       //Mẫu: 123, 456
-      if (!(phoneNumber === "123" && password === "456")) {
+      const result = await loginUser(phoneNumber, password);
+      setLoading(false);
+      if (!result.success) {
         // Thông báo thông tin đăng nhập không đúng
         setIsModalVisible(true);
         setModalProps({
           ...modalProps,
-          message:
-            "Thông tin đăng nhập không đúng (Nhập vào 123 và 456 để đăng nhập)",
+          message: "Thông tin đăng nhập không đúng",
           icon: <Octicons name="shield-x" size={50} color="#ffffff" />,
           bgColorClassName: "bg-error",
         });
       } else {
-        //chuyển tới HomePage
-        navigation.navigate("HomePage");
+        login();
       }
     } else {
       console.log("Thiếu thông tin");
@@ -59,8 +57,7 @@ const Login = () => {
       // Thiếu thông tin đăng nhập
       setModalProps({
         ...modalProps,
-        message:
-          "Vui lòng nhập đầy đủ thông tin (Nhập vào 123 và 456 để đăng nhập)",
+        message: "Vui lòng nhập đầy đủ thông tin",
         icon: <Octicons name="shield-x" size={50} color="#ffffff" />,
         bgColorClassName: "bg-error",
       });
@@ -70,20 +67,16 @@ const Login = () => {
   return (
     <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
       <View className="flex-1 justify-center items-center p-4">
-        {/* <Image
-          source={require("../../assets/imgs/medibell.png")}
-          className="w-80 h-48"
-        /> */}
+        {loading && (
+          <ActivityIndicator
+            size="large"
+            color="#00BFFF"
+            style={{ position: "absolute", zIndex: 1 }}
+          />
+        )}
         <View className="w-80 h-48 justify-center items-center relative">
-          {loading && (
-            <ActivityIndicator
-              size="large"
-              color="#00BFFF"
-              style={{ position: "absolute", zIndex: 1 }}
-            />
-          )}
           <Image
-            source={require("../../assets/imgs/medibell.png")}
+            source={require("../../../assets/imgs/medibell.png")}
             className="w-80 h-48"
             onLoadStart={() => setLoading(true)}
             onLoadEnd={() => setLoading(false)}
@@ -150,7 +143,7 @@ const Login = () => {
         <View className="w-[24rem] justify-center items-center gap-2 mb-6">
           <TouchableOpacity className="flex-row items-center justify-center p-3 border border-gray-300 rounded-lg w-[24rem] bg-white">
             <Image
-              source={require("../../assets/imgs/gg_logo.png")}
+              source={require("../../../assets/imgs/gg_logo.png")}
               className="w-4 h-4 mr-3"
             />
             <Text className="text-sm font-medium text-gray-700">
@@ -159,7 +152,7 @@ const Login = () => {
           </TouchableOpacity>
           <TouchableOpacity className="flex-row items-center justify-center p-3 border border-gray-300 rounded-lg w-[24rem] bg-white">
             <Image
-              source={require("../../assets/imgs/fb_logo.png")}
+              source={require("../../../assets/imgs/fb_logo.png")}
               className="w-4 h-4 mr-3"
             />
             <Text className="text-sm font-medium text-gray-700">

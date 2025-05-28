@@ -1,22 +1,148 @@
 import React, { useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
 import NavBar from "../components/NavBar";
 import ListItem from "../components/ListItem";
+import { useFocusEffect } from "@react-navigation/native";
+import { useCallback } from "react";
 import { FontAwesome5, AntDesign } from "@expo/vector-icons";
 import DatesTab from "../components/DatesTab";
 import { DateType } from "react-native-ui-datepicker";
+import { clearAsyncStorage } from "../storage/storage";
+import { useAuth } from "../contexts/AuthContext";
+import { MedicineSchedule, MedicineScheduleIntake } from "../types/Medicine";
+import { getUserID } from "../storage/storage";
+import {
+  fetchMedicineSchedule,
+  toggleMedicineSchedule,
+} from "../api/MedicineSchedule";
+import MedicineItem from "../components/MedicineItem";
+import { SwipeListView } from "react-native-swipe-list-view";
+import Toast from "react-native-toast-message";
+import dayjs from "dayjs";
+import AddPrescriptionModal from "../components/AddPrescriptionModal";
 import "../../global.css";
 
+const PERIOD_CONFIG = {
+  Sáng: {
+    title: "Sáng: 6 - 12h",
+    icon: "🌅",
+    bgColor: "bg-yellow-50", // NativeWind class
+  },
+  Trưa: {
+    title: "Trưa: 12 - 18h",
+    icon: "🌞",
+    bgColor: "bg-blue-50",
+  },
+  Chiều: {
+    title: "Chiều: 18 - 24h",
+    icon: "🌇",
+    bgColor: "bg-orange-50",
+  },
+  Tối: {
+    title: "Tối: 22 - 24h",
+    icon: "🌙",
+    bgColor: "bg-indigo-100",
+  },
+} as const;
+
 const HomePage = ({ navigation }: any) => {
+  const { logout } = useAuth();
+
+  const [medicineScheduleIntakes, setMedicineScheduleIntakes] = useState<
+    MedicineScheduleIntake[]
+  >([]);
+  const [selectedMedicine, setSelectedMedicine] =
+    useState<MedicineScheduleIntake | null>(null);
+  const [schedules, setSchedules] = useState<MedicineSchedule[]>([]);
+
   let today = new Date();
   const [selectedDay, setSelectedDay] = useState<DateType>(
     new Date(today.getFullYear(), today.getMonth(), today.getDate())
   );
+  const [showAddPrescriptionModal, setShowAddPrescriptionModal] =
+    useState(false);
+  const [dayPickerModalVisible, setDayPickerModalVisible] = useState(false);
+  const [actionModalVisible, setActionModalVisible] = useState(false);
+
+  const [loading, setLoading] = useState(false);
+  const loadSchedules = async () => {
+    setLoading(true);
+    const patientId = await getUserID();
+    if (!patientId) {
+      console.error("Không tìm thấy ID bệnh nhân trong storage.");
+      return;
+    }
+    const dayStr = dayjs(selectedDay).format("YYYY-MM-DD");
+    const data = await fetchMedicineSchedule(patientId, dayStr, dayStr);
+    setSchedules(data);
+    const allIntakes = data.flatMap((schedule) =>
+      schedule.intakes.map((intake) => ({
+        ...intake,
+        startDate: schedule.startDate,
+        endDate: schedule.endDate,
+        status: schedule.status,
+        prescriptionName: schedule.prescriptionName,
+        patientId: schedule.patientId,
+        // diagnosisResultId: schedule.diagnosisResultId, // nếu không có thì bỏ
+        // note: schedule.note, // nếu không có thì bỏ
+      }))
+    );
+    console.log("Tất cả các lần uống:", allIntakes);
+    setMedicineScheduleIntakes(allIntakes);
+    setLoading(false);
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      loadSchedules();
+    }, [selectedDay])
+  );
+
+  const handleLongPress = (medicine: MedicineScheduleIntake) => {
+    setActionModalVisible(true);
+    setSelectedMedicine(medicine);
+  };
+
+  const handleExpand = (medicine: MedicineScheduleIntake) => {
+    setActionModalVisible(true);
+    setSelectedMedicine(medicine);
+  };
+
+  const markAsTaken = async (medicineId?: number) => {
+    try {
+      if (!selectedMedicine) return;
+      const scheduleId = medicineId ? medicineId : selectedMedicine.id;
+      // if (!selectedMedicine) return;
+      // const scheduleId = selectedMedicine.id;
+      const drankTime = await toggleMedicineSchedule(scheduleId);
+      loadSchedules();
+    } catch (err) {}
+    setActionModalVisible(false);
+  };
+
+  const handleAddMedicine = async (item: any) => {
+    console.log("Thêm thuốc mới");
+    console.log(item);
+  };
+  const handleSignOut = async () => {
+    // Xóa thông tin người dùng khỏi AsyncStorage
+    await clearAsyncStorage();
+    logout();
+  };
 
   return (
     <View className="flex-1 bg-screen justify-center items-center py-4">
       <View className="w-full flex-row justify-between items-center px-4 pt-10 mb-4">
-        <TouchableOpacity className="justify-center items-center">
+        <TouchableOpacity
+          className="justify-center items-center"
+          onPress={handleSignOut}
+        >
           <FontAwesome5
             name="user"
             size={15}
@@ -29,7 +155,10 @@ const HomePage = ({ navigation }: any) => {
           <Text className="text-lg font-semibold">Xin chào bạn của tôi!</Text>
         </View>
 
-        <TouchableOpacity className="justify-center items-center">
+        <TouchableOpacity
+          className="justify-center items-center"
+          onPress={() => setShowAddPrescriptionModal(true)}
+        >
           <AntDesign
             name="plussquareo"
             size={20}
@@ -41,35 +170,122 @@ const HomePage = ({ navigation }: any) => {
       <View className="flex-row justify-between items-center mt-2">
         <DatesTab onDateSelect={setSelectedDay} />
       </View>
-
-      <ScrollView className="flex-1 mt-4 px-4 w-full">
-        <View className="flex-col gap-2 mb-4">
-          <Text className="text-black font-bold text-xl">08:00</Text>
-          <View>
-            <ListItem
-              medicineName="Thuốc cảm cúm"
-              description="Đơn thuốc bao gồm 3 loại thuốc"
-              leftElement={<View className="w-7 h-7 rounded-full bg-unused" />}
-            />
-            <ListItem
-              medicineName="Thuốc ho"
-              description="Đơn thuốc bao gồm 2 loại thuốc"
-              leftElement={<View className="w-7 h-7 rounded-full bg-unused" />}
-            />
-          </View>
+      {loading ? (
+        <View className="flex-1 justify-center items-center">
+          <ActivityIndicator size="large" color="#0000ff" />
+          <Text className="mt-2 text-gray-500">
+            Đang tải lịch uống thuốc...
+          </Text>
         </View>
-        <View className="flex-col gap-2 mb-4">
-          <Text className="text-black font-bold text-xl">Đã uống</Text>
-          <View>
-            <ListItem
-              medicineName="Thuốc cảm cúm 2"
-              description="Đơn thuốc bao gồm 1 loại thuốc"
-              leftElement={<View className="w-7 h-7 rounded-full bg-used" />}
-            />
-          </View>
+      ) : medicineScheduleIntakes.length === 0 ? (
+        <View className="flex-1 justify-center items-center">
+          <Text className="text-gray-500">
+            Không có lịch uống thuốc nào trong ngày này.
+          </Text>
         </View>
-      </ScrollView>
+      ) : (
+        <ScrollView className="flex-1 w-full">
+          {[
+            {
+              label: "Chưa uống",
+              filter: (item: MedicineScheduleIntake) => item.takenAt === null,
+            },
+            {
+              label: "Đã uống",
+              filter: (item: MedicineScheduleIntake) => item.takenAt !== null,
+            },
+          ].map(({ label, filter }) => {
+            const medicines = medicineScheduleIntakes.filter(filter);
 
+            if (medicines.length === 0) return null;
+
+            return (
+              <View key={label} className="mb-5 px-2 rounded-lg">
+                {/* Header: Chưa uống / Đã uống */}
+                <View className="flex-row items-center mb-2 ml-2">
+                  <Text className="text-lg font-bold">{label}</Text>
+                </View>
+
+                {/* Bên trong chia theo buổi */}
+                {["Sáng", "Trưa", "Chiều", "Tối"].map((period) => {
+                  const medicinesByPeriod = medicines.filter(
+                    (item) => item.period === period
+                  );
+
+                  if (medicinesByPeriod.length === 0) return null;
+
+                  const { title, icon } = PERIOD_CONFIG[period] || {};
+
+                  return (
+                    <View key={period} className="mb-4">
+                      {/* Buổi uống */}
+                      <View className="flex-row items-center mb-1 ml-1">
+                        <Text className="text-xl mr-2">{icon}</Text>
+                        <Text className="text-base font-semibold">{title}</Text>
+                      </View>
+
+                      {/* Danh sách thuốc */}
+                      <View className="px-4 py-2 rounded-2xl">
+                        <SwipeListView
+                          data={medicinesByPeriod}
+                          keyExtractor={(item) => item.id.toString()}
+                          renderItem={({ item, index }) => (
+                            <MedicineItem
+                              medicine={item}
+                              onPress={() => {
+                                navigation.navigate("MedicineDetailScreen", {
+                                  scheduleId: item.id,
+                                });
+                              }}
+                              onExpand={handleExpand}
+                              showDivider={
+                                index !== medicinesByPeriod.length - 1
+                              }
+                            />
+                          )}
+                          renderHiddenItem={({ item }) => (
+                            <View className="flex-1 justify-center items-end pr-4">
+                              <View
+                                className={`py-2 px-4 rounded-xl ${
+                                  item.takenAt ? "bg-gray-400" : "bg-green-500"
+                                }`}
+                              >
+                                <Text className="text-white font-bold">
+                                  {item.takenAt
+                                    ? "Chưa uống"
+                                    : "Đánh dấu đã uống"}
+                                </Text>
+                              </View>
+                            </View>
+                          )}
+                          rightOpenValue={-220}
+                          friction={20}
+                          disableRightSwipe
+                          onRowOpen={async (rowKey, rowMap) => {
+                            const medicine = medicinesByPeriod.find(
+                              (m) => m.id.toString() === rowKey
+                            );
+                            if (!medicine) return;
+
+                            setSelectedMedicine(medicine);
+                            await markAsTaken(medicine.id);
+                            rowMap[rowKey]?.closeRow();
+                          }}
+                        />
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            );
+          })}
+        </ScrollView>
+      )}
+
+      <AddPrescriptionModal
+        visible={showAddPrescriptionModal}
+        onClose={() => setShowAddPrescriptionModal(false)}
+      />
       {/* NavBar */}
       <NavBar activeTab="home" iconSize={20} navigation={navigation} />
     </View>
