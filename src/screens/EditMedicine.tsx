@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -29,11 +29,13 @@ interface MedicinePayload {
   quy_che: string;
   cach_dung: string;
   url: string;
-  id_nguoi_dung: number;
+  id_nguoi_dung?: number;
   Thanh_phan: { ten_thanh_phan: string; ham_luong: string }[];
 }
 
-const AddMedicine = ({ navigation }: any) => {
+const EditMedicine = ({ navigation, route }: any) => {
+  const { id } = route.params;
+
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [form, setForm] = useState<string>(""); // Dạng chọn
@@ -47,20 +49,47 @@ const AddMedicine = ({ navigation }: any) => {
 
   const packInputRef = useRef<TextInput>(null);
 
+  useEffect(() => {
+    const fetchMedicine = async () => {
+      try {
+        const response = await fetch(`https://medibell-be.onrender.com/api/medicines/${id}`);
+        if (!response.ok) throw new Error("Lấy dữ liệu thất bại");
+        const data = await response.json();
+
+        setName(data.ten_thuoc || "");
+        setForm(data.don_vi || "");
+        setPack(data.quy_che || "");
+        setDesc(data.mo_ta || "");
+        setUsage(data.cach_dung || "");
+        setImageUri(data.url || null);
+        if (data.Thanh_phan && Array.isArray(data.Thanh_phan)) {
+          setComponents(
+            data.Thanh_phan.map((c: any, idx: number) => ({
+              id: idx + 1,
+              name: c.ten_thanh_phan || "",
+              amount: c.ham_luong || "",
+            }))
+          );
+        }
+      } catch (error: any) {
+        Alert.alert("Lỗi", error.message || "Không thể tải dữ liệu thuốc");
+      }
+    };
+    fetchMedicine();
+  }, [id]);
+
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
       Alert.alert("Bạn cần cấp quyền truy cập ảnh để tiếp tục!");
       return;
     }
-
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 1,
       allowsEditing: false,
       selectionLimit: 1,
     });
-
     if (!result.canceled) {
       setImageUri(result.assets[0].uri);
     }
@@ -88,7 +117,6 @@ const AddMedicine = ({ navigation }: any) => {
   };
 
   const isSaveEnabled = () => {
-    // Kiểm tra tất cả các trường string phải khác rỗng
     if (
       !name.trim() ||
       !form.trim() ||
@@ -97,19 +125,16 @@ const AddMedicine = ({ navigation }: any) => {
       !usage.trim()
     )
       return false;
-  
-    // Kiểm tra mảng components ít nhất 1 phần tử, và mỗi phần tử có name và amount khác rỗng
+
     if (
       components.length === 0 ||
-      components.some(
-        (c) => !c.name.trim() || !c.amount.trim()
-      )
+      components.some((c) => !c.name.trim() || !c.amount.trim())
     )
       return false;
-  
+
     return true;
   };
-  
+
   const handleSave = async () => {
     const payload: MedicinePayload = {
       ten_thuoc: name.trim(),
@@ -118,55 +143,50 @@ const AddMedicine = ({ navigation }: any) => {
       quy_che: pack.trim(),
       cach_dung: usage.trim(),
       url: imageUri || "",
-      id_nguoi_dung: 1,
       Thanh_phan: components.map((c) => ({
         ten_thanh_phan: c.name.trim(),
         ham_luong: c.amount.trim(),
       })),
     };
-  
+
     try {
       const response = await fetch(
-        "https://medibell-be.onrender.com/api/medicines",
+        `https://medibell-be.onrender.com/api/medicines/${id}`,
         {
-          method: "POST",
+          method: "PUT",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify(payload),
         }
       );
-  
+
       if (!response.ok) {
         const errorData = await response.json();
-        Alert.alert("Lỗi", errorData.message || "Thêm thuốc thất bại");
+        Alert.alert("Lỗi", errorData.message || "Cập nhật thuốc thất bại");
         return;
       }
-  
-      // Navigate với param successMessage
-      navigation.navigate("MedicineLibrary", { successMessage: "Thêm thuốc mới thành công" });
+
+      navigation.navigate("MedicineLibrary", { successMessage: "Cập nhật thông tin thuốc thành công" });
     } catch (error) {
       Alert.alert("Lỗi", "Không thể kết nối đến server");
     }
   };
-  
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       style={styles.container}
     >
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => {
-            navigation.goBack();
-          }}
+          onPress={() => navigation.goBack()}
         >
           <Feather name="arrow-left" size={20} color="black" />
         </TouchableOpacity>
         <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>Thêm thuốc mới</Text>
+          <Text style={styles.headerTitle}>Chỉnh sửa thuốc</Text>
         </View>
         <View style={{ width: 40 }} />
       </View>
@@ -177,9 +197,7 @@ const AddMedicine = ({ navigation }: any) => {
         enableOnAndroid={true}
         extraScrollHeight={20}
       >
-        {/* Ảnh và thông tin thuốc */}
         <View style={styles.imageAndInfoContainer}>
-          {/* Ảnh */}
           <TouchableOpacity onPress={pickImage} style={styles.imagePicker}>
             {imageUri ? (
               <>
@@ -203,7 +221,6 @@ const AddMedicine = ({ navigation }: any) => {
             )}
           </TouchableOpacity>
 
-          {/* Thông tin tên thuốc, dạng (custom dropdown), quy chế */}
           <View style={{ flex: 1 }}>
             <Text style={styles.label}>Tên thuốc</Text>
             <TextInput
@@ -215,7 +232,6 @@ const AddMedicine = ({ navigation }: any) => {
             />
 
             <View style={{ flexDirection: "row" }}>
-              {/* Dạng */}
               <View style={{ flex: 0.65, marginRight: 12, marginTop: 8 }}>
                 <CustomDropDown
                   label="Dạng"
@@ -228,7 +244,6 @@ const AddMedicine = ({ navigation }: any) => {
                 />
               </View>
 
-              {/* Quy chế */}
               <View style={{ flex: 0.8, marginTop: 8 }}>
                 <Text style={styles.label}>Quy chế</Text>
                 <TextInput
@@ -243,16 +258,15 @@ const AddMedicine = ({ navigation }: any) => {
           </View>
         </View>
 
-        {/* Mô tả ngắn */}
         <Text style={styles.label}>Mô tả ngắn</Text>
         <TextInput
           placeholder="Nhập mô tả về thuốc"
           value={desc}
           onChangeText={setDesc}
           multiline
-          onContentSizeChange={(event) => {
-            setDescHeight(event.nativeEvent.contentSize.height);
-          }}
+          onContentSizeChange={(event) =>
+            setDescHeight(event.nativeEvent.contentSize.height)
+          }
           style={[
             styles.textInput,
             {
@@ -263,7 +277,6 @@ const AddMedicine = ({ navigation }: any) => {
           ]}
         />
 
-        {/* Thành phần */}
         <View style={styles.componentsHeader}>
           <Text style={{ fontWeight: "600", fontSize: 16, flex: 1 }}>
             Thành phần
@@ -273,16 +286,13 @@ const AddMedicine = ({ navigation }: any) => {
           </TouchableOpacity>
         </View>
 
-        {/* Bảng thành phần */}
         <View style={styles.componentsTable}>
-          {/* Header bảng */}
           <View style={{ flexDirection: "row", marginBottom: 8 }}>
             <Text style={{ flex: 2, fontWeight: "600" }}>Tên thành phần</Text>
             <Text style={{ flex: 1, fontWeight: "600" }}>Hàm lượng (mg)</Text>
             <View style={{ width: 24 }} />
           </View>
 
-          {/* Dòng thành phần */}
           {components.map((comp) => (
             <View
               key={comp.id}
@@ -301,9 +311,7 @@ const AddMedicine = ({ navigation }: any) => {
               <TextInput
                 placeholder="Hàm lượng (mg)"
                 value={comp.amount}
-                onChangeText={(text) =>
-                  updateComponent(comp.id, "amount", text)
-                }
+                onChangeText={(text) => updateComponent(comp.id, "amount", text)}
                 keyboardType="numeric"
                 style={styles.componentInputAmount}
               />
@@ -316,7 +324,6 @@ const AddMedicine = ({ navigation }: any) => {
           ))}
         </View>
 
-        {/* Cách dùng */}
         <Text style={styles.label}>Cách dùng</Text>
         <TextInput
           placeholder="Cách dùng thuốc"
@@ -333,7 +340,6 @@ const AddMedicine = ({ navigation }: any) => {
         />
       </KeyboardAwareScrollView>
 
-      {/* Nút Lưu */}
       <TouchableOpacity
         disabled={!isSaveEnabled()}
         style={[
@@ -345,7 +351,6 @@ const AddMedicine = ({ navigation }: any) => {
         <Text style={styles.saveButtonText}>Lưu</Text>
       </TouchableOpacity>
 
-      {/* NavBar */}
       <NavBar activeTab="library" iconSize={20} navigation={navigation} />
     </KeyboardAvoidingView>
   );
@@ -475,4 +480,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AddMedicine;
+export default EditMedicine;

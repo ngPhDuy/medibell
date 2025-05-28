@@ -6,13 +6,14 @@ import Onboarding1 from "../screens/Onboarding1";
 import Onboarding2 from "../screens/Onboarding2";
 import Onboarding3 from "../screens/Onboarding3";
 import Onboarding4 from "../screens/Onboarding4";
-import Login from "../screens/Auth/Login";
 import HomePage from "../screens/HomePage";
 import MedicineDetailScreen from "../screens/MedicineDetail";
 import MedicineLibrary from "../screens/MedicineLibrary";
+import MedicineDetailLibrary from "../screens/MedicineDetailLibrary";
 import AddMedicine from "../screens/AddMedicine";
-import Register from "../screens/Auth/Register";
 import AuthStack from "../screens/Auth/AuthStack";
+import MedicineDetail from "../screens/MedicineDetail";
+import EditMedicine from "../screens/EditMedicine";
 import { useOnboarding } from "../contexts/OnboardingContext";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -29,6 +30,9 @@ export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
   AuthStack: undefined;
+  MedicineDetail: undefined;
+  MedicineDetailLibrary: undefined;
+  EditMedicine: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -93,6 +97,9 @@ export default function AppNavigator() {
         />
         <Stack.Screen name="AddMedicine" component={AddMedicine} />
         <Stack.Screen name="MedicineLibrary" component={MedicineLibrary} />
+        <Stack.Screen name="MedicineDetail" component={MedicineDetail} />
+        <Stack.Screen name="MedicineDetailLibrary" component={MedicineDetailLibrary} />
+        <Stack.Screen name="EditMedicine" component={EditMedicine} />
       </Stack.Navigator>
     </NavigationContainer>
   );

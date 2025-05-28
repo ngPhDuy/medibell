@@ -50,7 +50,7 @@ const NavBar: React.FC<NavBarProps> = ({
         className={`justify-center items-center ${
           activeTab === "library" ? "bg-primary rounded-full" : ""
         }`}
-        onPress={() => navigation.navigate("AddMedicine")}
+        onPress={() => navigation.navigate("MedicineLibrary")}
       >
         <FontAwesome5
           name="briefcase-medical"
