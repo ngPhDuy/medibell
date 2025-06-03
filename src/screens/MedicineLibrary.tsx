@@ -35,6 +35,13 @@ const MedicineLibrary = ({ navigation, route }: any) => {
   const [selectedMedicineId, setSelectedMedicineId] = useState<string | null>(
     null
   );
+  const [menuPos, setMenuPos] = useState<{ x: number; y: number }>({
+    x: 0,
+    y: 0,
+  });
+  const [selectedMedicineId, setSelectedMedicineId] = useState<string | null>(
+    null
+  );
   const [loadingDelete, setLoadingDelete] = useState(false);
 
   const [confirmModalVisible, setConfirmModalVisible] = useState(false);
@@ -92,6 +99,7 @@ const MedicineLibrary = ({ navigation, route }: any) => {
       const data = await fetchMedicines(uId);
       setMedicines(data);
     } catch (err: any) {
+      console.log(err);
       setError(err.message || "Có lỗi xảy ra");
     } finally {
       setLoading(false);
@@ -172,10 +180,30 @@ const MedicineLibrary = ({ navigation, route }: any) => {
     med.ten_thuoc.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const handleSignOut = async () => {
+    try {
+      // Lưu lại giá trị hasSeenOnboarding (nếu có)
+      const onboardingValue = await AsyncStorage.getItem("hasSeenOnboarding");
+
+      // Xóa toàn bộ AsyncStorage
+      await AsyncStorage.clear();
+
+      // Đặt lại hasSeenOnboarding nếu trước đó đã xem
+      if (onboardingValue !== null) {
+        await AsyncStorage.setItem("hasSeenOnboarding", onboardingValue);
+      }
+
+      // Gọi hàm logout của bạn (ví dụ như cập nhật context hoặc chuyển trang)
+      logout();
+    } catch (error) {
+      console.error("Lỗi khi đăng xuất:", error);
+    }
+  };
+
   return (
-    <View style={styles.container}>
+    <View className="flex-1 bg-screen px-4 py-4 gap-2">
       {/* Header */}
-      <View style={styles.header}>
+      {/* <View style={styles.header}>
         <TouchableOpacity style={styles.userButton}>
           <FontAwesome5 name="user" size={16} color="black" />
         </TouchableOpacity>
@@ -188,11 +216,44 @@ const MedicineLibrary = ({ navigation, route }: any) => {
         >
           <AntDesign name="plussquareo" size={24} color="black" />
         </TouchableOpacity>
+      </View> */}
+      <View className="w-full flex-row justify-between items-center px-4 pt-10 mb-4">
+        <TouchableOpacity
+          className="justify-center items-center"
+          onPress={handleSignOut}
+        >
+          <FontAwesome5
+            name="user"
+            size={15}
+            color="black"
+            className="p-3 rounded-full bg-gray-200"
+          />
+        </TouchableOpacity>
+        <View className="text-center justify-center items-center">
+          <Text className="text-lg font-semibold">Thư viện thuốc</Text>
+        </View>
+        <TouchableOpacity
+          className="justify-center items-center"
+          onPress={() => navigation.navigate("AddMedicine")}
+        >
+          <AntDesign
+            name="plussquareo"
+            size={20}
+            color="black"
+            className="p-3"
+          />
+        </TouchableOpacity>
       </View>
 
       {/* Search bar */}
       <View style={styles.searchContainer}>
         <View style={styles.searchBox}>
+          <Feather
+            name="search"
+            size={18}
+            color="black"
+            style={{ marginRight: 8 }}
+          />
           <Feather
             name="search"
             size={18}
@@ -237,6 +298,10 @@ const MedicineLibrary = ({ navigation, route }: any) => {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
         {filteredMedicines.map((item) => (
           <ListMedicine
             key={item.id}
@@ -257,6 +322,9 @@ const MedicineLibrary = ({ navigation, route }: any) => {
           onPress={hideMenu}
           style={styles.dropdownOverlay}
         >
+          <View
+            style={[styles.dropdownMenu, { top: menuPos.y, left: menuPos.x }]}
+          >
           <View
             style={[styles.dropdownMenu, { top: menuPos.y, left: menuPos.x }]}
           >
@@ -291,6 +359,9 @@ const MedicineLibrary = ({ navigation, route }: any) => {
             <Text style={styles.modalText}>
               Bạn có chắc muốn xóa thuốc này không?
             </Text>
+            <Text style={styles.modalText}>
+              Bạn có chắc muốn xóa thuốc này không?
+            </Text>
 
             <View style={styles.modalButtons}>
               <TouchableOpacity
@@ -321,6 +392,9 @@ const MedicineLibrary = ({ navigation, route }: any) => {
         <Animated.View
           style={[styles.successBanner, { opacity: bannerOpacity }]}
         >
+        <Animated.View
+          style={[styles.successBanner, { opacity: bannerOpacity }]}
+        >
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <AntDesign name="checkcircle" size={20} color="white" />
             <Text style={styles.successText}>{successMessage}</Text>
@@ -332,6 +406,12 @@ const MedicineLibrary = ({ navigation, route }: any) => {
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "white",
+    paddingHorizontal: 16,
+    paddingTop: 40,
+  },
   container: {
     flex: 1,
     backgroundColor: "white",

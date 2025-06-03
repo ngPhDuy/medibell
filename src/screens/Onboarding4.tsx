@@ -21,14 +21,7 @@ const Onboarding4 = () => {
 
   const handlePress = async () => {
     console.log("Đã nhấn nút Trải nghiệm ngay");
-    setHasSeenOnboarding(true);
-
-    navigation.dispatch(
-      CommonActions.reset({
-        index: 0,
-        routes: [{ name: "Login" }],
-      })
-    );
+    await setHasSeenOnboarding(true); // Context sẽ cập nhật => AppNavigator tự thay đổi cây navigator
   };
 
   return (

@@ -58,6 +58,10 @@ const MedicineDetailLibrary = ({ navigation, route }: any) => {
           styles.container,
           { justifyContent: "center", alignItems: "center" },
         ]}
+        style={[
+          styles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
       >
         <ActivityIndicator size="large" color="#2563eb" />
       </View>
@@ -71,7 +75,18 @@ const MedicineDetailLibrary = ({ navigation, route }: any) => {
           styles.container,
           { justifyContent: "center", alignItems: "center" },
         ]}
+        style={[
+          styles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
       >
+        <Text style={{ color: "#374151" }}>
+          {error || "Không có dữ liệu thuốc"}
+        </Text>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={{ marginTop: 16 }}
+        >
         <Text style={{ color: "#374151" }}>
           {error || "Không có dữ liệu thuốc"}
         </Text>
@@ -120,6 +135,11 @@ const MedicineDetailLibrary = ({ navigation, route }: any) => {
             style={styles.image}
             resizeMode="cover"
           />
+          <Image
+            source={{ uri: medicine.url }}
+            style={styles.image}
+            resizeMode="cover"
+          />
           <View style={{ flex: 1, paddingLeft: 12 }}>
             <Text style={styles.name}>{medicine.ten_thuoc}</Text>
             <Text style={styles.subText}>{medicine.don_vi}</Text>
@@ -129,6 +149,9 @@ const MedicineDetailLibrary = ({ navigation, route }: any) => {
 
         {/* Mô tả ngắn */}
         <Text style={styles.sectionTitle}>Mô tả ngắn</Text>
+        <Text style={[styles.description, styles.descriptionBox]}>
+          {medicine.mo_ta}
+        </Text>
         <Text style={[styles.description, styles.descriptionBox]}>
           {medicine.mo_ta}
         </Text>
@@ -145,8 +168,22 @@ const MedicineDetailLibrary = ({ navigation, route }: any) => {
                 styles.tableHeaderText,
               ]}
             >
+            <Text
+              style={[
+                styles.tableCell,
+                styles.cellWithBorder,
+                styles.tableHeaderText,
+              ]}
+            >
               Thành phần
             </Text>
+            <Text
+              style={[
+                styles.tableCell,
+                styles.cellPaddingLeft,
+                styles.tableHeaderText,
+              ]}
+            >
             <Text
               style={[
                 styles.tableCell,
@@ -174,12 +211,21 @@ const MedicineDetailLibrary = ({ navigation, route }: any) => {
               <Text style={[styles.tableCell, styles.cellPaddingLeft]}>
                 {item.ham_luong}
               </Text>
+              <Text style={[styles.tableCell, styles.cellWithBorder]}>
+                {item.ten_thanh_phan}
+              </Text>
+              <Text style={[styles.tableCell, styles.cellPaddingLeft]}>
+                {item.ham_luong}
+              </Text>
             </View>
           ))}
         </View>
 
         {/* Cách dùng */}
         <Text style={styles.sectionTitle}>Cách dùng</Text>
+        <Text style={[styles.description, styles.descriptionBox]}>
+          {medicine.cach_dung}
+        </Text>
         <Text style={[styles.description, styles.descriptionBox]}>
           {medicine.cach_dung}
         </Text>
@@ -308,3 +354,4 @@ const styles = StyleSheet.create({
 });
 
 export default MedicineDetailLibrary;
+

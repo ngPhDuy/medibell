@@ -9,6 +9,9 @@ import {
   Image,
   Alert,
   StyleSheet,
+  Button,
+  ActivityIndicator,
+  Modal,
 } from "react-native";
 import { Feather, AntDesign } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
@@ -16,6 +19,9 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import NavBar from "../components/NavBar";
 import CustomDropDown from "../components/CustomDropDown";
 import { getUserID } from "../storage/storage";
+import "../../global.css";
+const API_BASE_URL = process.env.EXPO_PUBLIC_SERVER_URL;
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_SERVER_URL;
 interface ComponentItem {
@@ -46,6 +52,7 @@ const AddMedicine = ({ navigation }: any) => {
   const [components, setComponents] = useState<ComponentItem[]>([
     { id: 1, name: "", amount: "" },
   ]);
+  const [loading, setLoading] = useState(false);
 
   const packInputRef = useRef<TextInput>(null);
 
@@ -109,14 +116,8 @@ const AddMedicine = ({ navigation }: any) => {
 
     return true;
   };
-
+  
   const handleSave = async () => {
-    // Lấy userID từ storage
-    const userID = await getUserID();
-    if (!userID) {
-      Alert.alert("Lỗi", "Không tìm thấy thông tin người dùng");
-      return;
-    }
     const payload: MedicinePayload = {
       ten_thuoc: name.trim(),
       mo_ta: desc.trim(),
@@ -124,13 +125,13 @@ const AddMedicine = ({ navigation }: any) => {
       quy_che: pack.trim(),
       cach_dung: usage.trim(),
       url: imageUri || "",
-      id_nguoi_dung: Number(userID),
+      id_nguoi_dung: 1,
       Thanh_phan: components.map((c) => ({
         ten_thanh_phan: c.name.trim(),
         ham_luong: c.amount.trim(),
       })),
     };
-    console.log("Payload to save:", payload);
+  
     try {
       const response = await fetch(`${API_BASE_URL}/api/medicines`, {
         method: "POST",
@@ -143,15 +144,15 @@ const AddMedicine = ({ navigation }: any) => {
       if (!response.ok) {
         const errorData = await response.json();
         Alert.alert("Lỗi", errorData.message || "Thêm thuốc thất bại");
+        setLoading(false);
         return;
       }
-
+  
       // Navigate với param successMessage
-      navigation.navigate("MedicineLibrary", {
-        successMessage: "Thêm thuốc mới thành công",
-      });
+      navigation.navigate("MedicineLibrary", { successMessage: "Thêm thuốc mới thành công" });
     } catch (error) {
       Alert.alert("Lỗi", "Không thể kết nối đến server");
+      setLoading(false);
     }
   };
 
@@ -160,6 +161,30 @@ const AddMedicine = ({ navigation }: any) => {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       style={styles.container}
     >
+      <Modal visible={loading} transparent={true} animationType="fade">
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "rgba(0, 0, 0, 0.4)",
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: "white",
+              padding: 20,
+              borderRadius: 10,
+              flexDirection: "row",
+              alignItems: "center",
+            }}
+          >
+            <ActivityIndicator size="large" color="#007bff" />
+            <Text style={{ marginLeft: 10, fontSize: 16 }}>Đang xử lý...</Text>
+          </View>
+        </View>
+      </Modal>
+
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
@@ -345,7 +370,9 @@ const AddMedicine = ({ navigation }: any) => {
         ]}
         onPress={handleSave}
       >
-        <Text style={styles.saveButtonText}>Lưu</Text>
+        <Text style={styles.saveButtonText} className="bg-primary">
+          Lưu
+        </Text>
       </TouchableOpacity>
 
       {/* NavBar */}

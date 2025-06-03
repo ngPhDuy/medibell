@@ -5,7 +5,7 @@ import Register from "./Register";
 import { isUserLoggedIn } from "../../storage/storage";
 import { ActivityIndicator, View } from "react-native";
 
-const Stack = createStackNavigator();
+const Stack = createStackNavigator<AuthStackParamList>();
 
 const AuthStack = () => {
   const [initialRoute, setInitialRoute] = useState<string | null>(null);
@@ -44,3 +44,8 @@ const AuthStack = () => {
 };
 
 export default AuthStack;
+
+export type AuthStackParamList = {
+  Login: undefined;
+  Register: undefined;
+};

@@ -13,7 +13,11 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.910phuongduy2003.medibell",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "permissions": [
@@ -35,7 +39,8 @@
     "extra": {
       "eas": {
         "projectId": "b5375e2e-b4b1-4fc8-8600-032434f572f9"
-      }
+      },
+      "sentryDsn": "https://b357d6f132e06538ac796c28a0cad7de@o4509434349879296.ingest.us.sentry.io/4509434378125312"
     },
     "runtimeVersion": {
       "policy": "appVersion"
@@ -43,6 +48,7 @@
     "updates": {
       "url": "https://u.expo.dev/b5375e2e-b4b1-4fc8-8600-032434f572f9",
       "fallbackToCacheTimeout": 0
-    }
+    },
+    "plugins": ["sentry-expo"]
   }
 }
