@@ -10,6 +10,9 @@ import {
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import NavBar from "../components/NavBar";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const API_BASE_URL = process.env.EXPO_PUBLIC_SERVER_URL;
 
 interface Ingredient {
   ten_thanh_phan: string;
@@ -39,9 +42,7 @@ const MedicineDetailLibrary = ({ navigation, route }: any) => {
       try {
         setLoading(true);
         setError(null);
-        const response = await fetch(
-          `https://medibell-be.onrender.com/api/medicines/${id}`
-        );
+        const response = await fetch(`${API_BASE_URL}/api/medicines/${id}`);
         if (!response.ok) throw new Error("Lấy dữ liệu thất bại");
         const data = await response.json();
         setMedicine(data);
@@ -57,21 +58,31 @@ const MedicineDetailLibrary = ({ navigation, route }: any) => {
   if (loading) {
     return (
       <View
-        style={[styles.container, { justifyContent: "center", alignItems: "center" }]}
+        style={[
+          styles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
       >
         <ActivityIndicator size="large" color="#2563eb" />
       </View>
     );
   }
 
-
   if (error || !medicine) {
     return (
       <View
-        style={[styles.container, { justifyContent: "center", alignItems: "center" }]}
+        style={[
+          styles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
       >
-        <Text style={{ color: "#374151" }}>{error || "Không có dữ liệu thuốc"}</Text>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginTop: 16 }}>
+        <Text style={{ color: "#374151" }}>
+          {error || "Không có dữ liệu thuốc"}
+        </Text>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={{ marginTop: 16 }}
+        >
           <Text style={{ color: "#2563eb" }}>Quay lại</Text>
         </TouchableOpacity>
       </View>
@@ -82,7 +93,10 @@ const MedicineDetailLibrary = ({ navigation, route }: any) => {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
           <Feather name="arrow-left" size={20} color="#374151" />
         </TouchableOpacity>
 
@@ -105,7 +119,11 @@ const MedicineDetailLibrary = ({ navigation, route }: any) => {
       >
         {/* Card chứa ảnh, tên thuốc, dạng, quy cách */}
         <View style={styles.card}>
-          <Image source={{ uri: medicine.url }} style={styles.image} resizeMode="cover" />
+          <Image
+            source={{ uri: medicine.url }}
+            style={styles.image}
+            resizeMode="cover"
+          />
           <View style={{ flex: 1, paddingLeft: 12 }}>
             <Text style={styles.name}>{medicine.ten_thuoc}</Text>
             <Text style={styles.subText}>{medicine.don_vi}</Text>
@@ -115,17 +133,31 @@ const MedicineDetailLibrary = ({ navigation, route }: any) => {
 
         {/* Mô tả ngắn */}
         <Text style={styles.sectionTitle}>Mô tả ngắn</Text>
-        <Text style={[styles.description, styles.descriptionBox]}>{medicine.mo_ta}</Text>
+        <Text style={[styles.description, styles.descriptionBox]}>
+          {medicine.mo_ta}
+        </Text>
 
         {/* Thành phần */}
         <Text style={styles.sectionTitle}>Thành phần</Text>
         <View style={styles.table}>
           {/* Header */}
           <View style={[styles.tableRow, styles.tableHeader]}>
-            <Text style={[styles.tableCell, styles.cellWithBorder, styles.tableHeaderText]}>
+            <Text
+              style={[
+                styles.tableCell,
+                styles.cellWithBorder,
+                styles.tableHeaderText,
+              ]}
+            >
               Thành phần
             </Text>
-            <Text style={[styles.tableCell, styles.cellPaddingLeft, styles.tableHeaderText]}>
+            <Text
+              style={[
+                styles.tableCell,
+                styles.cellPaddingLeft,
+                styles.tableHeaderText,
+              ]}
+            >
               Hàm lượng
             </Text>
           </View>
@@ -140,15 +172,21 @@ const MedicineDetailLibrary = ({ navigation, route }: any) => {
                 idx !== medicine.Thanh_phan.length - 1 && styles.tableRowBorder,
               ]}
             >
-              <Text style={[styles.tableCell, styles.cellWithBorder]}>{item.ten_thanh_phan}</Text>
-              <Text style={[styles.tableCell, styles.cellPaddingLeft]}>{item.ham_luong}</Text>
+              <Text style={[styles.tableCell, styles.cellWithBorder]}>
+                {item.ten_thanh_phan}
+              </Text>
+              <Text style={[styles.tableCell, styles.cellPaddingLeft]}>
+                {item.ham_luong}
+              </Text>
             </View>
           ))}
         </View>
 
         {/* Cách dùng */}
         <Text style={styles.sectionTitle}>Cách dùng</Text>
-        <Text style={[styles.description, styles.descriptionBox]}>{medicine.cach_dung}</Text>
+        <Text style={[styles.description, styles.descriptionBox]}>
+          {medicine.cach_dung}
+        </Text>
       </ScrollView>
 
       <NavBar activeTab="library" iconSize={20} navigation={navigation} />

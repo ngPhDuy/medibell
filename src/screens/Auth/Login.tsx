@@ -6,6 +6,7 @@ import {
   Image,
   ScrollView,
   ActivityIndicator,
+  Button,
 } from "react-native";
 import "../../../global.css";
 import AntDesign from "react-native-vector-icons/AntDesign";
@@ -18,6 +19,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useNavigation } from "@react-navigation/native";
 import type { AuthStackParamList } from "./AuthStack";
 import type { StackNavigationProp } from "@react-navigation/stack";
+// import * as Sentry from "sentry-expo";
 
 type NavigationProp = StackNavigationProp<AuthStackParamList, "Login">;
 

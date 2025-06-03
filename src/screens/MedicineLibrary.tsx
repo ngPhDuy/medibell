@@ -16,6 +16,7 @@ import NavBar from "../components/NavBar";
 import { FontAwesome5, AntDesign, Feather, Ionicons } from "@expo/vector-icons";
 import ListMedicine from "../components/ListMedicine";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAuth } from "../contexts/AuthContext";
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_SERVER_URL;
 
@@ -42,6 +43,7 @@ const MedicineLibrary = ({ navigation, route }: any) => {
   const [medicineIdToDelete, setMedicineIdToDelete] = useState<string | null>(
     null
   );
+  const { logout } = useAuth();
 
   // null = sort mặc định theo id giảm dần
   // true = tên tăng dần
@@ -182,10 +184,30 @@ const MedicineLibrary = ({ navigation, route }: any) => {
     med.ten_thuoc.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const handleSignOut = async () => {
+    try {
+      // Lưu lại giá trị hasSeenOnboarding (nếu có)
+      const onboardingValue = await AsyncStorage.getItem("hasSeenOnboarding");
+
+      // Xóa toàn bộ AsyncStorage
+      await AsyncStorage.clear();
+
+      // Đặt lại hasSeenOnboarding nếu trước đó đã xem
+      if (onboardingValue !== null) {
+        await AsyncStorage.setItem("hasSeenOnboarding", onboardingValue);
+      }
+
+      // Gọi hàm logout của bạn (ví dụ như cập nhật context hoặc chuyển trang)
+      logout();
+    } catch (error) {
+      console.error("Lỗi khi đăng xuất:", error);
+    }
+  };
+
   return (
-    <View style={styles.container}>
+    <View className="flex-1 bg-screen px-4 py-4 gap-2">
       {/* Header */}
-      <View style={styles.header}>
+      {/* <View style={styles.header}>
         <TouchableOpacity style={styles.userButton}>
           <FontAwesome5 name="user" size={16} color="black" />
         </TouchableOpacity>
@@ -197,6 +219,33 @@ const MedicineLibrary = ({ navigation, route }: any) => {
           style={styles.addButton}
         >
           <AntDesign name="plussquareo" size={24} color="black" />
+        </TouchableOpacity>
+      </View> */}
+      <View className="w-full flex-row justify-between items-center px-4 pt-10 mb-4">
+        <TouchableOpacity
+          className="justify-center items-center"
+          onPress={handleSignOut}
+        >
+          <FontAwesome5
+            name="user"
+            size={15}
+            color="black"
+            className="p-3 rounded-full bg-gray-200"
+          />
+        </TouchableOpacity>
+        <View className="text-center justify-center items-center">
+          <Text className="text-lg font-semibold">Thư viện thuốc</Text>
+        </View>
+        <TouchableOpacity
+          className="justify-center items-center"
+          onPress={() => navigation.navigate("AddMedicine")}
+        >
+          <AntDesign
+            name="plussquareo"
+            size={20}
+            color="black"
+            className="p-3"
+          />
         </TouchableOpacity>
       </View>
 
