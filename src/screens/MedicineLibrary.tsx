@@ -15,6 +15,8 @@ import {
 import NavBar from "../components/NavBar";
 import { FontAwesome5, AntDesign, Feather, Ionicons } from "@expo/vector-icons";
 import ListMedicine from "../components/ListMedicine";
+import { fetchMedicines, deleteMedicine } from "../api/Medicines";
+import { getUserID } from "../storage/storage";
 
 const MedicineLibrary = ({ navigation, route }: any) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -26,12 +28,19 @@ const MedicineLibrary = ({ navigation, route }: any) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [menuPos, setMenuPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const [selectedMedicineId, setSelectedMedicineId] = useState<string | null>(null);
+  const [menuPos, setMenuPos] = useState<{ x: number; y: number }>({
+    x: 0,
+    y: 0,
+  });
+  const [selectedMedicineId, setSelectedMedicineId] = useState<string | null>(
+    null
+  );
   const [loadingDelete, setLoadingDelete] = useState(false);
 
   const [confirmModalVisible, setConfirmModalVisible] = useState(false);
-  const [medicineIdToDelete, setMedicineIdToDelete] = useState<string | null>(null);
+  const [medicineIdToDelete, setMedicineIdToDelete] = useState<string | null>(
+    null
+  );
 
   // null = sort mặc định theo id giảm dần
   // true = tên tăng dần
@@ -68,20 +77,19 @@ const MedicineLibrary = ({ navigation, route }: any) => {
   };
 
   useEffect(() => {
-    fetchMedicines();
+    loadMedicines();
   }, []);
 
-  const fetchMedicines = async () => {
+  const loadMedicines = async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(
-        `https://medibell-be.onrender.com/api/medicines?userID=1`
-      );
-      if (!response.ok) {
-        throw new Error("Lỗi khi tải danh sách thuốc");
+      const uId = await getUserID();
+      if (!uId) {
+        throw new Error("Không tìm thấy ID người dùng");
       }
-      const data = await response.json();
+      console.log("Fetching medicines for user ID:", uId);
+      const data = await fetchMedicines(uId);
       setMedicines(data);
     } catch (err: any) {
       setError(err.message || "Có lỗi xảy ra");
@@ -90,16 +98,10 @@ const MedicineLibrary = ({ navigation, route }: any) => {
     }
   };
 
-  const deleteMedicine = async (id: string) => {
+  const handleDeleteMedicine = async (id: string) => {
     setLoadingDelete(true);
     try {
-      const response = await fetch(
-        `https://medibell-be.onrender.com/api/medicines/${id}`,
-        { method: "DELETE" }
-      );
-      if (!response.ok) {
-        throw new Error("Xóa thuốc thất bại");
-      }
+      await deleteMedicine(id);
       setMedicines((prev) => prev.filter((med) => med.id !== id));
       setSelectedMedicineId(null);
       showBanner("Xóa thuốc thành công");
@@ -134,7 +136,7 @@ const MedicineLibrary = ({ navigation, route }: any) => {
   const onConfirmDelete = async () => {
     if (!medicineIdToDelete) return;
     setConfirmModalVisible(false);
-    await deleteMedicine(medicineIdToDelete);
+    await handleDeleteMedicine(medicineIdToDelete);
     setMedicineIdToDelete(null);
   };
 
@@ -191,7 +193,12 @@ const MedicineLibrary = ({ navigation, route }: any) => {
       {/* Search bar */}
       <View style={styles.searchContainer}>
         <View style={styles.searchBox}>
-          <Feather name="search" size={18} color="black" style={{ marginRight: 8 }} />
+          <Feather
+            name="search"
+            size={18}
+            color="black"
+            style={{ marginRight: 8 }}
+          />
           <TextInput
             style={styles.searchInput}
             placeholder="Nhấn Enter để tìm kiếm"
@@ -226,7 +233,10 @@ const MedicineLibrary = ({ navigation, route }: any) => {
       {error && <Text style={styles.errorText}>{error}</Text>}
 
       {/* List */}
-      <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
         {filteredMedicines.map((item) => (
           <ListMedicine
             key={item.id}
@@ -247,7 +257,9 @@ const MedicineLibrary = ({ navigation, route }: any) => {
           onPress={hideMenu}
           style={styles.dropdownOverlay}
         >
-          <View style={[styles.dropdownMenu, { top: menuPos.y, left: menuPos.x }]}>
+          <View
+            style={[styles.dropdownMenu, { top: menuPos.y, left: menuPos.x }]}
+          >
             <TouchableOpacity
               onPress={onPressDeleteButton}
               disabled={loadingDelete}
@@ -276,7 +288,9 @@ const MedicineLibrary = ({ navigation, route }: any) => {
           onPressOut={() => setConfirmModalVisible(false)}
         >
           <View style={styles.modalContent}>
-            <Text style={styles.modalText}>Bạn có chắc muốn xóa thuốc này không?</Text>
+            <Text style={styles.modalText}>
+              Bạn có chắc muốn xóa thuốc này không?
+            </Text>
 
             <View style={styles.modalButtons}>
               <TouchableOpacity
@@ -304,22 +318,26 @@ const MedicineLibrary = ({ navigation, route }: any) => {
 
       {/* Success banner */}
       {showSuccessBanner && (
-        <Animated.View style={[styles.successBanner, { opacity: bannerOpacity }]}>
+        <Animated.View
+          style={[styles.successBanner, { opacity: bannerOpacity }]}
+        >
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <AntDesign name="checkcircle" size={20} color="white" />
             <Text style={styles.successText}>{successMessage}</Text>
           </View>
         </Animated.View>
       )}
-
-      {/* Bottom NavBar */}
-      <NavBar activeTab="library" iconSize={20} navigation={navigation} />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "white", paddingHorizontal: 16, paddingTop: 40 },
+  container: {
+    flex: 1,
+    backgroundColor: "white",
+    paddingHorizontal: 16,
+    paddingTop: 40,
+  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",

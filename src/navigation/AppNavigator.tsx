@@ -16,7 +16,10 @@ import MedicineDetail from "../screens/MedicineDetail";
 import EditMedicine from "../screens/EditMedicine";
 import { useOnboarding } from "../contexts/OnboardingContext";
 import { useAuth } from "../contexts/AuthContext";
-
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { createStackNavigator } from "@react-navigation/stack";
+import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
+import { FontAwesome5 } from "@expo/vector-icons";
 export type RootStackParamList = {
   Onboarding1: undefined;
   Onboarding2: undefined;
@@ -35,8 +38,36 @@ export type RootStackParamList = {
   EditMedicine: undefined;
 };
 
-const Stack = createNativeStackNavigator<RootStackParamList>();
+const Stack = createStackNavigator();
+const Tab = createBottomTabNavigator();
 
+const HomeStack = () => {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="HomePage" component={HomePage} />
+      <Stack.Screen
+        name="MedicineDetailScreen"
+        component={MedicineDetailScreen}
+        initialParams={{ scheduleId: 0 }}
+      />
+    </Stack.Navigator>
+  );
+};
+
+const MedicineLibraryStack = () => {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="MedicineLibrary" component={MedicineLibrary} />
+      <Stack.Screen
+        name="MedicineDetailLibrary"
+        component={MedicineDetailLibrary}
+      />
+      <Stack.Screen name="AddMedicine" component={AddMedicine} />
+      <Stack.Screen name="EditMedicine" component={EditMedicine} />
+      <Stack.Screen name="MedicineDetail" component={MedicineDetail} />
+    </Stack.Navigator>
+  );
+};
 export default function AppNavigator() {
   const { hasSeenOnboarding } = useOnboarding();
   const { loggedIn } = useAuth();
@@ -80,27 +111,38 @@ export default function AppNavigator() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {/* {!hasSeenOnboarding && (
-          <>
-            <Stack.Screen name="Onboarding1" component={Onboarding1} />
-            <Stack.Screen name="Onboarding2" component={Onboarding2} />
-            <Stack.Screen name="Onboarding3" component={Onboarding3} />
-            <Stack.Screen name="Onboarding4" component={Onboarding4} />
-          </> 
-        )} */}
-        <Stack.Screen name="HomePage" component={HomePage} />
-        <Stack.Screen
-          name="MedicineDetailScreen"
-          component={MedicineDetailScreen}
-          initialParams={{ scheduleId: 0 }}
+      <Tab.Navigator
+        screenOptions={({ route }) => ({
+          headerShown: false,
+          tabBarIcon: ({ color, size }) => {
+            if (route.name === "HomeStack") {
+              return <FontAwesome5 name="home" size={size} color={color} />;
+            } else if (route.name === "MedicineLibraryStack") {
+              return (
+                <FontAwesome5
+                  name="briefcase-medical"
+                  size={size}
+                  color={color}
+                />
+              );
+            }
+            return null;
+          },
+          tabBarActiveTintColor: "#1C1E20",
+          tabBarInactiveTintColor: "#9CA3AF",
+        })}
+      >
+        <Tab.Screen
+          name="HomeStack"
+          component={HomeStack}
+          options={{ title: "Trang chủ" }}
         />
-        <Stack.Screen name="AddMedicine" component={AddMedicine} />
-        <Stack.Screen name="MedicineLibrary" component={MedicineLibrary} />
-        <Stack.Screen name="MedicineDetail" component={MedicineDetail} />
-        <Stack.Screen name="MedicineDetailLibrary" component={MedicineDetailLibrary} />
-        <Stack.Screen name="EditMedicine" component={EditMedicine} />
-      </Stack.Navigator>
+        <Tab.Screen
+          name="MedicineLibraryStack"
+          component={MedicineLibraryStack}
+          options={{ title: "Thư viện thuốc" }}
+        />
+      </Tab.Navigator>
     </NavigationContainer>
   );
 }

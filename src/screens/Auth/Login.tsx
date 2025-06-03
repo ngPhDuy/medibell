@@ -14,8 +14,10 @@ import { Ionicons } from "@expo/vector-icons";
 import CustomTextInput from "../../components/CustomTextInput";
 import CustomModal from "../../components/CustomModal";
 import { loginUser } from "../../api/Auth";
+import { registerForPushNotificationsAsync } from "../../../utils/notification";
 import { useAuth } from "../../contexts/AuthContext";
-
+import { getUserID } from "../../storage/storage";
+import { savePushToken } from "../../api/Notification";
 const Login = () => {
   const { login } = useAuth();
   const [phoneNumber, setPhoneNumber] = useState("123");
@@ -23,6 +25,7 @@ const Login = () => {
 
   const [isSecureEntry, setIsSecureEntry] = useState(true);
   const [isModalVisible, setIsModalVisible] = useState(false); // State for modal visibility
+  const [expoPushToken, setExpoPushToken] = useState<string | null>(null);
 
   const [modalProps, setModalProps] = useState({
     message: "Vui lòng nhập đầy đủ thông tin",
@@ -50,6 +53,20 @@ const Login = () => {
         });
       } else {
         login();
+
+        try {
+          const token = await registerForPushNotificationsAsync();
+          if (token) {
+            setExpoPushToken(token);
+
+            const userID = await getUserID();
+            await savePushToken(userID, token);
+
+            console.log("Push token đã lưu thành công!");
+          }
+        } catch (error) {
+          console.error("Lỗi khi lưu push token:", error);
+        }
       }
     } else {
       console.log("Thiếu thông tin");

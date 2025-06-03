@@ -15,16 +15,15 @@ import {
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
 import AddDrugToPrescriptionModal from "./AddDrugToPrescriptionModal";
-
-// Định nghĩa kiểu dữ liệu cho một loại thuốc
-interface DrugItem {
-  id: string; // Dùng để làm key cho FlatList
-  name: string;
-  quantity: string;
-  unit: string;
-  note: string;
-  instruction: string[]; // Cập nhật: Thay đổi thành mảng string
-}
+import DatePickerField from "../components/DatePickerField";
+import { DateType } from "react-native-ui-datepicker";
+import {
+  DonChuaThuoc,
+  CreateScheduleRequest,
+  MedicineDetail,
+} from "../types/Medicine";
+import { getUserID } from "../storage/storage";
+import { createMedicineSchedule } from "../api/MedicineSchedule";
 
 interface AddPrescriptionModalProps {
   visible: boolean;
@@ -36,16 +35,16 @@ const AddPrescriptionModal: React.FC<AddPrescriptionModalProps> = ({
   onClose,
 }) => {
   const [prescriptionInput, setPrescriptionInput] = useState("");
-  const [startDate, setStartDate] = useState("09/03/2025"); // Demo ngày
-  const [endDate, setEndDate] = useState("12/03/2025"); // Demo ngày
-  const [drugs, setDrugs] = useState<DrugItem[]>([]); // Danh sách thuốc đã thêm
+  const [startDate, setStartDate] = useState<DateType>(new Date()); // Demo ngày
+  const [endDate, setEndDate] = useState<DateType>(new Date()); // Demo ngày
+  const [drugs, setDrugs] = useState<DonChuaThuoc[]>([]); // Danh sách thuốc đã thêm
   const [isAddDrugModalVisible, setIsAddDrugModalVisible] = useState(false);
 
   const handleAddDrugPress = () => {
     setIsAddDrugModalVisible(true);
   };
 
-  const handleSaveDrug = (newDrug: DrugItem) => {
+  const handleSaveDrug = (newDrug: DonChuaThuoc) => {
     setDrugs((prevDrugs) => [
       ...prevDrugs,
       { ...newDrug, id: Date.now().toString() },
@@ -57,35 +56,70 @@ const AddPrescriptionModal: React.FC<AddPrescriptionModalProps> = ({
     setDrugs((prevDrugs) => prevDrugs.filter((drug) => drug.id !== id));
   };
 
-  const handleSavePrescription = () => {
+  const handleSavePrescription = async () => {
     if (prescriptionInput.trim() === "") {
       alert("Vui lòng nhập tên đơn thuốc.");
       return;
     }
-    onClose(); // Đóng modal chính sau khi lưu
+
+    if (!startDate || !endDate) {
+      alert("Vui lòng chọn ngày bắt đầu và kết thúc.");
+      return;
+    }
+    const uId = await getUserID();
+    if (!uId) {
+      alert("Không tìm thấy ID người dùng.");
+      return;
+    }
+    const scheduleRequest: CreateScheduleRequest = {
+      id_nguoi_dung: uId,
+      ten_don_thuoc: prescriptionInput.trim(),
+      ngay_bat_dau: new Date(startDate as Date).toISOString().split("T")[0],
+      ngay_ket_thuc: new Date(endDate as Date).toISOString().split("T")[0],
+      Don_chua_thuoc: drugs.map((item) => ({
+        id: item.id,
+        thuoc: item.thuoc,
+        tong_so: Number(item.tong_so),
+        buoi_uong: item.buoi_uong?.join(", ") || "",
+        ghi_chu: item.ghi_chu,
+      })),
+    };
+    console.log("Dữ liệu gửi lên server:", scheduleRequest);
+    try {
+      const response = await createMedicineSchedule(scheduleRequest);
+      if (response) {
+        alert("Đã lưu đơn thuốc thành công!");
+      } else {
+        alert("Lưu đơn thuốc thất bại. Vui lòng thử lại.");
+      }
+    } catch (error) {
+      console.error("Lỗi khi lưu đơn thuốc:", error);
+      alert("Đã xảy ra lỗi khi lưu đơn thuốc. Vui lòng thử lại sau.");
+    }
+    onClose();
   };
 
-  const renderDrugItem = ({ item }: { item: DrugItem }) => (
+  const renderDrugItem = ({ item }: { item: DonChuaThuoc }) => (
     <View className="bg-gray-100 p-3 rounded-lg mb-2 border border-gray-200">
       <View className="flex-row justify-between items-center mb-1">
         <Text className="text-blue-600 font-semibold text-base">
-          {item.name}
+          {item.thuoc}
         </Text>
         <TouchableOpacity onPress={() => handleDeleteDrug(item.id)}>
           <AntDesign name="closecircle" size={20} color="#EF4444" />
           {/* Icon X đỏ */}
         </TouchableOpacity>
       </View>
-      {item.note ? (
-        <Text className="text-gray-600 text-sm">Ghi chú: {item.note}</Text>
+      {item.ghi_chu ? (
+        <Text className="text-gray-600 text-sm">Ghi chú: {item.ghi_chu}</Text>
       ) : null}
       <Text className="text-gray-600 text-sm">
-        Số lượng: {item.quantity} {item.unit}
+        Số lượng: {item.tong_so} viên
       </Text>
       {/* Cập nhật phần hiển thị instruction */}
-      {item.instruction && item.instruction.length > 0 && (
+      {item.buoi_uong && item.buoi_uong.length > 0 && (
         <Text className="text-gray-600 text-sm">
-          Uống vào buổi: {item.instruction.join(", ")}
+          Uống vào buổi: {item.buoi_uong.join(", ")}
         </Text>
       )}
     </View>
@@ -138,28 +172,30 @@ const AddPrescriptionModal: React.FC<AddPrescriptionModalProps> = ({
               />
 
               {/* Date Pickers */}
-              <View className="flex-row justify-between mb-6">
-                <TouchableOpacity
-                  // onPress={handlePressCalendarFrom} // Kết nối với DatePicker
-                  className="flex-row items-center flex-1 border border-gray-300 rounded-md p-3 mr-2"
-                >
-                  <Text className="text-base text-gray-500 flex-1">
-                    {startDate}
-                  </Text>
-                  <FontAwesome name="calendar" size={20} color="#9CA3AF" />
-                  {/* Icon Lịch */}
-                </TouchableOpacity>
+              <View className="flex-row gap-3 justify-between mb-6">
+                <View className="w-1/2">
+                  <DatePickerField
+                    date={startDate}
+                    onChange={(date) => setStartDate(date)}
+                    placeholder="Chọn ngày bắt đầu"
+                    label="Ngày bắt đầu"
+                    mode="single"
+                    maxDate={new Date("2025-12-31")}
+                    minDate={new Date("2025-01-01")}
+                  />
+                </View>
 
-                <TouchableOpacity
-                  // onPress={handlePressCalendarTo} // Kết nối với DatePicker
-                  className="flex-row items-center flex-1 border border-gray-300 rounded-md p-3 ml-2"
-                >
-                  <Text className="text-base text-gray-500 flex-1">
-                    {endDate}
-                  </Text>
-                  <FontAwesome name="calendar" size={20} color="#9CA3AF" />
-                  {/* Icon Lịch */}
-                </TouchableOpacity>
+                <View className="w-1/2">
+                  <DatePickerField
+                    date={endDate}
+                    onChange={(date) => setEndDate(date)}
+                    placeholder="Chọn ngày kết thúc"
+                    label="Ngày kết thúc"
+                    mode="single"
+                    maxDate={new Date("2025-12-31")}
+                    minDate={startDate}
+                  />
+                </View>
               </View>
 
               {/* Button "Thêm thuốc" */}
@@ -186,7 +222,13 @@ const AddPrescriptionModal: React.FC<AddPrescriptionModalProps> = ({
               {/* Button "Lưu" */}
               <TouchableOpacity
                 onPress={handleSavePrescription}
-                className="bg-blue-500 py-3 rounded-md items-center shadow-sm"
+                className={
+                  `py-3 rounded-md items-center shadow-sm` +
+                  (prescriptionInput.trim() === "" || drugs.length === 0
+                    ? " bg-gray-400"
+                    : " bg-blue-500")
+                }
+                disabled={prescriptionInput.trim() === "" || drugs.length === 0}
               >
                 <Text className="text-white font-semibold text-base">Lưu</Text>
               </TouchableOpacity>

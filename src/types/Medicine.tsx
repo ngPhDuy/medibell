@@ -62,3 +62,37 @@ export interface MedicineSchedule {
   patientId: number; // id_nguoi_dung
   intakes: MedicineIntake[]; // Lan_uong
 }
+
+export interface DonChuaThuoc {
+  id: string;
+  thuoc: string;
+  tong_so: number;
+  buoi_uong: string[] | string;
+  ghi_chu?: string;
+}
+
+export interface CreateScheduleRequest {
+  id_nguoi_dung: string;
+  ngay_bat_dau: string; // format: YYYY-MM-DD
+  ngay_ket_thuc: string;
+  ten_don_thuoc: string;
+  Don_chua_thuoc: DonChuaThuoc[];
+}
+
+export interface ThanhPhan {
+  ten_thanh_phan: string;
+  ham_luong: string;
+}
+
+export interface MedicineDetail {
+  id: number;
+  ten_thuoc: string;
+  mo_ta: string;
+  don_vi: string;
+  quy_che: string;
+  cach_dung: string;
+  url: string;
+  bi_xoa: boolean;
+  id_nguoi_dung: number;
+  Thanh_phan: ThanhPhan[];
+}

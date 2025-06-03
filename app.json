@@ -16,11 +16,17 @@
       "supportsTablet": true
     },
     "android": {
-      "permissions": ["READ_EXTERNAL_STORAGE", "CAMERA"],
+      "permissions": [
+        "READ_EXTERNAL_STORAGE",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "CAMERA"
+      ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.tantaivo2003.medibell"
     },
     "web": {
       "favicon": "./assets/favicon.png",

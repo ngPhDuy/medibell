@@ -15,7 +15,7 @@ import * as ImagePicker from "expo-image-picker";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import NavBar from "../components/NavBar";
 import CustomDropDown from "../components/CustomDropDown";
-
+const API_BASE_URL = process.env.EXPO_PUBLIC_SERVER_URL;
 interface ComponentItem {
   id: number;
   name: string;
@@ -52,7 +52,7 @@ const EditMedicine = ({ navigation, route }: any) => {
   useEffect(() => {
     const fetchMedicine = async () => {
       try {
-        const response = await fetch(`https://medibell-be.onrender.com/api/medicines/${id}`);
+        const response = await fetch(`${API_BASE_URL}api/medicines/${id}`);
         if (!response.ok) throw new Error("Lấy dữ liệu thất bại");
         const data = await response.json();
 
@@ -150,16 +150,13 @@ const EditMedicine = ({ navigation, route }: any) => {
     };
 
     try {
-      const response = await fetch(
-        `https://medibell-be.onrender.com/api/medicines/${id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/api/medicines/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -167,7 +164,9 @@ const EditMedicine = ({ navigation, route }: any) => {
         return;
       }
 
-      navigation.navigate("MedicineLibrary", { successMessage: "Cập nhật thông tin thuốc thành công" });
+      navigation.navigate("MedicineLibrary", {
+        successMessage: "Cập nhật thông tin thuốc thành công",
+      });
     } catch (error) {
       Alert.alert("Lỗi", "Không thể kết nối đến server");
     }
@@ -311,7 +310,9 @@ const EditMedicine = ({ navigation, route }: any) => {
               <TextInput
                 placeholder="Hàm lượng (mg)"
                 value={comp.amount}
-                onChangeText={(text) => updateComponent(comp.id, "amount", text)}
+                onChangeText={(text) =>
+                  updateComponent(comp.id, "amount", text)
+                }
                 keyboardType="numeric"
                 style={styles.componentInputAmount}
               />

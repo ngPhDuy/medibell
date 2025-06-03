@@ -68,3 +68,41 @@ export const signupUser = async (
     return { success: false, message: "Không thể kết nối đến server" };
   }
 };
+
+export const uploadFilesToCloud = async (files: File[], folderName: string) => {
+  try {
+    const formData = new FormData();
+
+    // Thêm từng file vào form-data (trường "files")
+    files.forEach((file) => {
+      formData.append("files", file);
+    });
+
+    // Thêm tên thư mục
+    formData.append("folderName", folderName);
+
+    const response = await fetch(`${API_BASE_URL}/api/cloud/uploadAPI`, {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      // Dữ liệu dạng: [{ url: ..., type: ... }, ...]
+      console.log("Tải lên thành công:", data);
+      return { success: true, data };
+    } else {
+      return {
+        success: false,
+        message: data.message || "Tải tệp lên thất bại",
+      };
+    }
+  } catch (error) {
+    console.error("Lỗi khi tải lên file:", error);
+    return {
+      success: false,
+      message: "Không thể kết nối đến server",
+    };
+  }
+};

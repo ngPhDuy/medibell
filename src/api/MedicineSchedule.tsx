@@ -3,6 +3,7 @@ import {
   MedicineIntake,
   MedicineSchedule,
   MedicineIntakeDetail,
+  CreateScheduleRequest,
 } from "../types/Medicine";
 
 export const fetchMedicineSchedule = async (
@@ -125,6 +126,30 @@ export const fetchMedicineScheduleById = async (scheduleId: number) => {
     return data;
   } catch (error) {
     console.error("Error fetching medicine schedule:", error);
+    throw error;
+  }
+};
+
+export const createMedicineSchedule = async (
+  data: CreateScheduleRequest
+): Promise<any> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/medicine_schedules`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Tạo lịch uống thuốc thất bại.");
+    }
+
+    return await response.json();
+  } catch (error: any) {
+    console.error("Lỗi khi tạo lịch uống thuốc:", error.message);
     throw error;
   }
 };

@@ -15,7 +15,9 @@ import * as ImagePicker from "expo-image-picker";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import NavBar from "../components/NavBar";
 import CustomDropDown from "../components/CustomDropDown";
+import { getUserID } from "../storage/storage";
 
+const API_BASE_URL = process.env.EXPO_PUBLIC_SERVER_URL;
 interface ComponentItem {
   id: number;
   name: string;
@@ -97,20 +99,24 @@ const AddMedicine = ({ navigation }: any) => {
       !usage.trim()
     )
       return false;
-  
+
     // Kiểm tra mảng components ít nhất 1 phần tử, và mỗi phần tử có name và amount khác rỗng
     if (
       components.length === 0 ||
-      components.some(
-        (c) => !c.name.trim() || !c.amount.trim()
-      )
+      components.some((c) => !c.name.trim() || !c.amount.trim())
     )
       return false;
-  
+
     return true;
   };
-  
+
   const handleSave = async () => {
+    // Lấy userID từ storage
+    const userID = await getUserID();
+    if (!userID) {
+      Alert.alert("Lỗi", "Không tìm thấy thông tin người dùng");
+      return;
+    }
     const payload: MedicinePayload = {
       ten_thuoc: name.trim(),
       mo_ta: desc.trim(),
@@ -118,38 +124,37 @@ const AddMedicine = ({ navigation }: any) => {
       quy_che: pack.trim(),
       cach_dung: usage.trim(),
       url: imageUri || "",
-      id_nguoi_dung: 1,
+      id_nguoi_dung: Number(userID),
       Thanh_phan: components.map((c) => ({
         ten_thanh_phan: c.name.trim(),
         ham_luong: c.amount.trim(),
       })),
     };
-  
+    console.log("Payload to save:", payload);
     try {
-      const response = await fetch(
-        "https://medibell-be.onrender.com/api/medicines",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        }
-      );
-  
+      const response = await fetch(`${API_BASE_URL}/api/medicines`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
       if (!response.ok) {
         const errorData = await response.json();
         Alert.alert("Lỗi", errorData.message || "Thêm thuốc thất bại");
         return;
       }
-  
+
       // Navigate với param successMessage
-      navigation.navigate("MedicineLibrary", { successMessage: "Thêm thuốc mới thành công" });
+      navigation.navigate("MedicineLibrary", {
+        successMessage: "Thêm thuốc mới thành công",
+      });
     } catch (error) {
       Alert.alert("Lỗi", "Không thể kết nối đến server");
     }
   };
-  
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -158,12 +163,10 @@ const AddMedicine = ({ navigation }: any) => {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => {
-            navigation.goBack();
-          }}
+          className="justify-center items-center"
+          onPress={() => navigation.goBack()}
         >
-          <Feather name="arrow-left" size={20} color="black" />
+          <AntDesign name="arrowleft" size={32} color="black" />
         </TouchableOpacity>
         <View style={styles.headerTitleContainer}>
           <Text style={styles.headerTitle}>Thêm thuốc mới</Text>
@@ -199,7 +202,7 @@ const AddMedicine = ({ navigation }: any) => {
                 </TouchableOpacity>
               </>
             ) : (
-              <Feather name="upload" size={32} color="#374151" />
+              <AntDesign name="upload" size={32} color="black" />
             )}
           </TouchableOpacity>
 
@@ -233,7 +236,7 @@ const AddMedicine = ({ navigation }: any) => {
                 <Text style={styles.label}>Quy chế</Text>
                 <TextInput
                   ref={packInputRef}
-                  placeholder="Kích cỡ"
+                  placeholder="Hộp 10 viên, 1 gói 5g..."
                   value={pack}
                   onChangeText={setPack}
                   style={[styles.textInput, { height: 45, paddingLeft: 8 }]}
@@ -346,7 +349,6 @@ const AddMedicine = ({ navigation }: any) => {
       </TouchableOpacity>
 
       {/* NavBar */}
-      <NavBar activeTab="library" iconSize={20} navigation={navigation} />
     </KeyboardAvoidingView>
   );
 };

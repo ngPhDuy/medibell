@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import {
+  Modal,
   View,
   Text,
   TouchableOpacity,
-  Modal,
+  TouchableWithoutFeedback,
   FlatList,
-  StyleSheet,
 } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import AntDesign from "@expo/vector-icons/AntDesign";
 
 type Option = { label: string; value: string };
 
@@ -32,25 +32,25 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
   };
 
   return (
-    <View style={{ marginBottom: 12 }}>
-      <Text style={styles.label}>{label}</Text>
+    <View className="mb-3">
+      {/* Label */}
+      <Text className="font-semibold mb-1.5">{label}</Text>
+
+      {/* Dropdown Button */}
       <TouchableOpacity
-        style={styles.dropdownButton}
+        className="flex-row items-center justify-between h-[45px] border border-gray-300 rounded-xl px-3 bg-white relative"
         onPress={() => setVisible(true)}
       >
-        <Text style={{ color: selectedValue ? "#374151" : "#9ca3af" }}>
+        <Text className={selectedValue ? "text-gray-700" : "text-gray-400"}>
           {selectedValue
             ? options.find((o) => o.value === selectedValue)?.label
-            : "Chọn dạng"}
+            : "Ấn để chọn"}
         </Text>
-        <Feather
-          name={visible ? "chevron-up" : "chevron-down"}
-          size={20}
-          color="#374151"
-          style={styles.dropdownIcon}
-        />
+
+        <AntDesign name={visible ? "up" : "down"} size={20} color="black" />
       </TouchableOpacity>
 
+      {/* Dropdown Modal */}
       <Modal
         visible={visible}
         transparent
@@ -58,24 +58,24 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
         onRequestClose={() => setVisible(false)}
       >
         <TouchableOpacity
-          style={styles.modalOverlay}
+          className="flex-1 bg-black/20 justify-center px-10" // Overlay for closing modal
           activeOpacity={1}
           onPressOut={() => setVisible(false)}
         >
-          <View style={styles.modalContent}>
+          <View className="bg-white rounded-xl py-3">
             <FlatList
               data={options}
               keyExtractor={(item) => item.value}
               renderItem={({ item }) => (
                 <TouchableOpacity
-                  style={styles.optionItem}
+                  className="py-3 px-4"
                   onPress={() => onSelect(item.value)}
                 >
-                  <Text style={styles.optionText}>{item.label}</Text>
+                  <Text className="text-base text-gray-700">{item.label}</Text>
                 </TouchableOpacity>
               )}
               ItemSeparatorComponent={() => (
-                <View style={{ height: 1, backgroundColor: "#eee" }} />
+                <View className="h-px bg-gray-200" />
               )}
             />
           </View>
@@ -84,47 +84,5 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  label: {
-    fontWeight: "600",
-    marginBottom: 6,
-  },
-  dropdownButton: {
-    height: 45,
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 12,
-    justifyContent: "center",
-    paddingHorizontal: 12,
-    backgroundColor: "#fff",
-    position: "relative",
-  },
-  dropdownIcon: {
-    position: "absolute",
-    right: 12,
-    top: "50%",
-    marginTop: -10,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.2)",
-    justifyContent: "center",
-    paddingHorizontal: 40,
-  },
-  modalContent: {
-    backgroundColor: "white",
-    borderRadius: 12,
-    paddingVertical: 12,
-  },
-  optionItem: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-  },
-  optionText: {
-    fontSize: 16,
-    color: "#374151",
-  },
-});
 
 export default CustomDropdown;

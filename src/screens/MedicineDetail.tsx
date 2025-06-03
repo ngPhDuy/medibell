@@ -16,6 +16,7 @@ import dayjs from "dayjs";
 import "dayjs/locale/vi";
 import { FontAwesome, AntDesign } from "@expo/vector-icons";
 import Toast from "react-native-toast-message";
+import NavBar from "../components/NavBar";
 
 const MedicineDetailScreen = ({ route, navigation }: any) => {
   const [medicineDetail, setMedicineDetail] =
@@ -101,7 +102,7 @@ const MedicineDetailScreen = ({ route, navigation }: any) => {
           className="justify-center items-center"
           onPress={() => navigation.goBack()}
         >
-          <AntDesign name="arrowleft" size={24} color="black" />
+          <AntDesign name="arrowleft" size={32} color="black" />
         </TouchableOpacity>
 
         <View className="text-center justify-center items-center">
