@@ -30,7 +30,8 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.tantaivo2003.medibell"
+      "package": "com.tantaivo2003.medibell",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -41,9 +42,6 @@
         "projectId": "b5375e2e-b4b1-4fc8-8600-032434f572f9"
       },
       "sentryDsn": "https://b357d6f132e06538ac796c28a0cad7de@o4509434349879296.ingest.us.sentry.io/4509434378125312"
-    },
-    "runtimeVersion": {
-      "policy": "appVersion"
     },
     "updates": {
       "url": "https://u.expo.dev/b5375e2e-b4b1-4fc8-8600-032434f572f9",

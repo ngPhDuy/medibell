@@ -23,7 +23,6 @@ import "../../global.css";
 const API_BASE_URL = process.env.EXPO_PUBLIC_SERVER_URL;
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_SERVER_URL;
 interface ComponentItem {
   id: number;
   name: string;
