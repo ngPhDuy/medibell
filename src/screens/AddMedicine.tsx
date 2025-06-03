@@ -18,7 +18,6 @@ import * as ImagePicker from "expo-image-picker";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import NavBar from "../components/NavBar";
 import CustomDropDown from "../components/CustomDropDown";
-import { getUserID } from "../storage/storage";
 import "../../global.css";
 const API_BASE_URL = process.env.EXPO_PUBLIC_SERVER_URL;
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -115,22 +114,84 @@ const AddMedicine = ({ navigation }: any) => {
 
     return true;
   };
-  
+
+  const uploadImageToServer = async (uri: string): Promise<string | null> => {
+    const formData = new FormData();
+
+    // Lấy tên file từ URI
+    const filename = uri.split("/").pop() ?? `image_${Date.now()}.jpg`;
+
+    // Tạo đối tượng file hợp lệ
+    const file = {
+      uri,
+      name: filename,
+      type: "image/jpeg", // hoặc 'image/png' nếu cần
+    } as any;
+
+    formData.append("files", file);
+    formData.append("folderName", "diagnosis");
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/cloud/upload`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        body: formData,
+      });
+      console.log(response);
+
+      const result = await response.json();
+      console.log(result);
+      if (response.ok) {
+        return result[0].url; // Trả về URL ảnh đã upload
+      } else {
+        Alert.alert(
+          "Upload thất bại",
+          result.message || "Không thể upload ảnh"
+        );
+        return null;
+      }
+    } catch (error) {
+      console.error("Lỗi khi upload ảnh:", error);
+      Alert.alert("Lỗi", "Không thể kết nối server để upload ảnh");
+      return null;
+    }
+  };
+
   const handleSave = async () => {
+    setLoading(true);
+    let uploadedUrl = "";
+
+    // Nếu có ảnh thì upload lên server trước
+    if (imageUri) {
+      const url = await uploadImageToServer(imageUri);
+      if (!url) return; // lỗi upload
+      uploadedUrl = url;
+    }
+
+    const userID = await AsyncStorage.getItem("user_id");
+
+    if (!userID || userID === "") {
+      console.error("User ID is missing or empty.");
+      setLoading(false);
+      return;
+    }
+
     const payload: MedicinePayload = {
       ten_thuoc: name.trim(),
       mo_ta: desc.trim(),
       don_vi: form,
       quy_che: pack.trim(),
       cach_dung: usage.trim(),
-      url: imageUri || "",
-      id_nguoi_dung: 1,
+      url: uploadedUrl, // Dùng URL ảnh đã upload
+      id_nguoi_dung: +userID,
       Thanh_phan: components.map((c) => ({
         ten_thanh_phan: c.name.trim(),
         ham_luong: c.amount.trim(),
       })),
     };
-  
+
     try {
       const response = await fetch(`${API_BASE_URL}/api/medicines`, {
         method: "POST",
@@ -146,9 +207,11 @@ const AddMedicine = ({ navigation }: any) => {
         setLoading(false);
         return;
       }
-  
-      // Navigate với param successMessage
-      navigation.navigate("MedicineLibrary", { successMessage: "Thêm thuốc mới thành công" });
+      setLoading(false);
+
+      navigation.navigate("MedicineLibrary", {
+        successMessage: "Thêm thuốc mới thành công",
+      });
     } catch (error) {
       Alert.alert("Lỗi", "Không thể kết nối đến server");
       setLoading(false);
@@ -187,10 +250,12 @@ const AddMedicine = ({ navigation }: any) => {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
-          className="justify-center items-center"
-          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+          onPress={() => {
+            navigation.goBack();
+          }}
         >
-          <AntDesign name="arrowleft" size={32} color="black" />
+          <Feather name="arrow-left" size={20} color="black" />
         </TouchableOpacity>
         <View style={styles.headerTitleContainer}>
           <Text style={styles.headerTitle}>Thêm thuốc mới</Text>
@@ -226,7 +291,7 @@ const AddMedicine = ({ navigation }: any) => {
                 </TouchableOpacity>
               </>
             ) : (
-              <AntDesign name="upload" size={32} color="black" />
+              <Feather name="upload" size={32} color="#374151" />
             )}
           </TouchableOpacity>
 
@@ -260,7 +325,7 @@ const AddMedicine = ({ navigation }: any) => {
                 <Text style={styles.label}>Quy chế</Text>
                 <TextInput
                   ref={packInputRef}
-                  placeholder="Hộp 10 viên, 1 gói 5g..."
+                  placeholder="Kích cỡ"
                   value={pack}
                   onChangeText={setPack}
                   style={[styles.textInput, { height: 45, paddingLeft: 8 }]}
@@ -369,12 +434,11 @@ const AddMedicine = ({ navigation }: any) => {
         ]}
         onPress={handleSave}
       >
-        <Text style={styles.saveButtonText} className="bg-primary">
-          Lưu
-        </Text>
+        <Text style={styles.saveButtonText}>Lưu</Text>
       </TouchableOpacity>
 
       {/* NavBar */}
+      <NavBar activeTab="library" iconSize={20} navigation={navigation} />
     </KeyboardAvoidingView>
   );
 };

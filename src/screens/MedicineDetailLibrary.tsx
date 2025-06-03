@@ -1,235 +1,394 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
-  TouchableOpacity,
-  Image,
+  TextInput,
   ScrollView,
+  TouchableOpacity,
+  Animated,
   ActivityIndicator,
+  UIManager,
+  findNodeHandle,
+  Modal,
   StyleSheet,
 } from "react-native";
-import { Feather } from "@expo/vector-icons";
 import NavBar from "../components/NavBar";
-import { getMedicineDetail } from "../api/Medicines";
-import { AntDesign } from "@expo/vector-icons";
-interface Ingredient {
-  ten_thanh_phan: string;
-  ham_luong: string;
-}
+import { FontAwesome5, AntDesign, Feather, Ionicons } from "@expo/vector-icons";
+import ListMedicine from "../components/ListMedicine";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAuth } from "../contexts/AuthContext";
 
-interface MedicineDetailData {
-  id: number;
-  ten_thuoc: string;
-  mo_ta: string;
-  don_vi: string;
-  quy_che: string;
-  cach_dung: string;
-  url: string;
-  Thanh_phan: Ingredient[];
-}
+const API_BASE_URL = process.env.EXPO_PUBLIC_SERVER_URL;
 
-const MedicineDetailLibrary = ({ navigation, route }: any) => {
-  const { id } = route.params;
+const MedicineLibrary = ({ navigation, route }: any) => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSuccessBanner, setShowSuccessBanner] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const bannerOpacity = useRef(new Animated.Value(0)).current;
 
-  const [loading, setLoading] = useState(true);
-  const [medicine, setMedicine] = useState<MedicineDetailData | null>(null);
+  const [medicines, setMedicines] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [menuPos, setMenuPos] = useState<{ x: number; y: number }>({
+    x: 0,
+    y: 0,
+  });
+  const [selectedMedicineId, setSelectedMedicineId] = useState<string | null>(
+    null
+  );
+  const [loadingDelete, setLoadingDelete] = useState(false);
+
+  const [confirmModalVisible, setConfirmModalVisible] = useState(false);
+  const [medicineIdToDelete, setMedicineIdToDelete] = useState<string | null>(
+    null
+  );
+  const { logout } = useAuth();
+
+  // null = sort mặc định theo id giảm dần
+  // true = tên tăng dần
+  // false = tên giảm dần
+  const [sortByName, setSortByName] = useState<boolean | null>(null);
+
   useEffect(() => {
-    const fetchMedicine = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await getMedicineDetail(id);
-        setMedicine(data);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
+    if (route.params?.successMessage) {
+      showBanner(route.params.successMessage);
+      navigation.setParams({ successMessage: null });
+    }
+  }, [route.params]);
+
+  const showBanner = (message: string) => {
+    setSuccessMessage(message);
+    setShowSuccessBanner(true);
+
+    Animated.timing(bannerOpacity, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+
+    setTimeout(() => {
+      Animated.timing(bannerOpacity, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => {
+        setShowSuccessBanner(false);
+        setSuccessMessage("");
+      });
+    }, 3000);
+  };
+
+  useEffect(() => {
+    fetchMedicines();
+  }, []);
+
+  const fetchMedicines = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const userID = await AsyncStorage.getItem("user_id");
+      const response = await fetch(
+        `${API_BASE_URL}/api/medicines?userID=${userID}`
+      );
+      if (!response.ok) {
+        console.log(response);
+        throw new Error("Lỗi khi tải danh sách thuốc");
       }
-    };
-    fetchMedicine();
-  }, [id]);
+      const data = await response.json();
+      setMedicines(data);
+    } catch (err: any) {
+      console.log(err);
+      setError(err.message || "Có lỗi xảy ra");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  if (loading) {
-    return (
-      <View
-        style={[
-          styles.container,
-          { justifyContent: "center", alignItems: "center" },
-        ]}
-        style={[
-          styles.container,
-          { justifyContent: "center", alignItems: "center" },
-        ]}
-      >
-        <ActivityIndicator size="large" color="#2563eb" />
-      </View>
-    );
-  }
+  const deleteMedicine = async (id: string) => {
+    setLoadingDelete(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/medicines/${id}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) {
+        throw new Error("Xóa thuốc thất bại");
+      }
+      setMedicines((prev) => prev.filter((med) => med.id !== id));
+      setSelectedMedicineId(null);
+      showBanner("Xóa thuốc thành công");
+    } catch (error: any) {
+      alert(error.message || "Lỗi khi xóa thuốc");
+    } finally {
+      setLoadingDelete(false);
+    }
+  };
 
-  if (error || !medicine) {
-    return (
-      <View
-        style={[
-          styles.container,
-          { justifyContent: "center", alignItems: "center" },
-        ]}
-        style={[
-          styles.container,
-          { justifyContent: "center", alignItems: "center" },
-        ]}
-      >
-        <Text style={{ color: "#374151" }}>
-          {error || "Không có dữ liệu thuốc"}
-        </Text>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={{ marginTop: 16 }}
-        >
-        <Text style={{ color: "#374151" }}>
-          {error || "Không có dữ liệu thuốc"}
-        </Text>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={{ marginTop: 16 }}
-        >
-          <Text style={{ color: "#2563eb" }}>Quay lại</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
+  const handleMenuPress = (id: string, ref: any) => {
+    if (!ref) return;
+    const handle = findNodeHandle(ref);
+    if (handle) {
+      UIManager.measure(handle, (fx, fy, width, height, px, py) => {
+        setMenuPos({ x: px + width - 48, y: py + height + 4 });
+        setSelectedMedicineId(id);
+      });
+    }
+  };
+
+  const hideMenu = () => {
+    setSelectedMedicineId(null);
+  };
+
+  const onPressDeleteButton = () => {
+    setMedicineIdToDelete(selectedMedicineId);
+    setConfirmModalVisible(true);
+    hideMenu();
+  };
+
+  const onConfirmDelete = async () => {
+    if (!medicineIdToDelete) return;
+    setConfirmModalVisible(false);
+    await deleteMedicine(medicineIdToDelete);
+    setMedicineIdToDelete(null);
+  };
+
+  const handlePressMedicine = (id: string) => {
+    navigation.navigate("MedicineDetailLibrary", { id });
+  };
+
+  // Toggle sortByName: null -> true -> false -> null -> ...
+  const toggleSortByName = () => {
+    setSortByName((prev) => {
+      if (prev === null) return true;
+      if (prev === true) return false;
+      return null;
+    });
+  };
+
+  // Sắp xếp danh sách tùy trạng thái sortByName
+  const sortedMedicines = [...medicines].sort((a, b) => {
+    if (sortByName === null) {
+      // Mặc định sort theo id giảm dần
+      return Number(b.id) - Number(a.id);
+    }
+    if (sortByName) {
+      // Tên tăng dần
+      return a.ten_thuoc.localeCompare(b.ten_thuoc);
+    } else {
+      // Tên giảm dần
+      return b.ten_thuoc.localeCompare(a.ten_thuoc);
+    }
+  });
+
+  const filteredMedicines = sortedMedicines.filter((med) =>
+    med.ten_thuoc.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleSignOut = async () => {
+    try {
+      // Lưu lại giá trị hasSeenOnboarding (nếu có)
+      const onboardingValue = await AsyncStorage.getItem("hasSeenOnboarding");
+
+      // Xóa toàn bộ AsyncStorage
+      await AsyncStorage.clear();
+
+      // Đặt lại hasSeenOnboarding nếu trước đó đã xem
+      if (onboardingValue !== null) {
+        await AsyncStorage.setItem("hasSeenOnboarding", onboardingValue);
+      }
+
+      // Gọi hàm logout của bạn (ví dụ như cập nhật context hoặc chuyển trang)
+      logout();
+    } catch (error) {
+      console.error("Lỗi khi đăng xuất:", error);
+    }
+  };
 
   return (
-    <View style={styles.container}>
+    <View className="flex-1 bg-screen px-4 py-4 gap-2">
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          className="justify-center items-center"
-          onPress={() => navigation.goBack()}
-        >
-          <AntDesign name="arrowleft" size={32} color="black" />
+      {/* <View style={styles.header}>
+        <TouchableOpacity style={styles.userButton}>
+          <FontAwesome5 name="user" size={16} color="black" />
         </TouchableOpacity>
 
-        <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>{medicine.ten_thuoc}</Text>
-        </View>
+        <Text style={styles.title}>Thư viện thuốc</Text>
 
         <TouchableOpacity
-          onPress={() => navigation.navigate("EditMedicine", { id })}
-          style={styles.editButton}
+          onPress={() => navigation.navigate("AddMedicine")}
+          style={styles.addButton}
         >
-          <Feather name="edit-2" size={20} color="#374151" />
+          <AntDesign name="plussquareo" size={24} color="black" />
+        </TouchableOpacity>
+      </View> */}
+      <View className="w-full flex-row justify-between items-center px-4 pt-10 mb-4">
+        <TouchableOpacity
+          className="justify-center items-center"
+          onPress={handleSignOut}
+        >
+          <FontAwesome5
+            name="user"
+            size={15}
+            color="black"
+            className="p-3 rounded-full bg-gray-200"
+          />
+        </TouchableOpacity>
+        <View className="text-center justify-center items-center">
+          <Text className="text-lg font-semibold">Thư viện thuốc</Text>
+        </View>
+        <TouchableOpacity
+          className="justify-center items-center"
+          onPress={() => navigation.navigate("AddMedicine")}
+        >
+          <AntDesign
+            name="plussquareo"
+            size={20}
+            color="black"
+            className="p-3"
+          />
         </TouchableOpacity>
       </View>
 
+      {/* Search bar */}
+      <View style={styles.searchContainer}>
+        <View style={styles.searchBox}>
+          <Feather
+            name="search"
+            size={18}
+            color="black"
+            style={{ marginRight: 8 }}
+          />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Nhấn Enter để tìm kiếm"
+            placeholderTextColor="#999"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            returnKeyType="search"
+          />
+        </View>
+
+        <Feather
+          name="filter"
+          size={20}
+          color="black"
+          style={{ marginLeft: 12, marginRight: 8 }}
+        />
+        <Ionicons
+          name="swap-vertical"
+          size={20}
+          color={sortByName === null ? "black" : "#2563eb"}
+          onPress={toggleSortByName}
+        />
+      </View>
+
+      {/* Result count */}
+      <Text style={styles.resultCount}>{filteredMedicines.length} kết quả</Text>
+
+      {/* Loading */}
+      {loading && <ActivityIndicator size="large" color="#2563eb" />}
+
+      {/* Error */}
+      {error && <Text style={styles.errorText}>{error}</Text>}
+
+      {/* List */}
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 40 }}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Card chứa ảnh, tên thuốc, dạng, quy cách */}
-        <View style={styles.card}>
-          <Image
-            source={{ uri: medicine.url }}
-            style={styles.image}
-            resizeMode="cover"
+        {filteredMedicines.map((item) => (
+          <ListMedicine
+            key={item.id}
+            id={item.id}
+            name={item.ten_thuoc}
+            description={item.mo_ta}
+            image={item.url ? { uri: item.url } : undefined}
+            onMenuPress={handleMenuPress}
+            onPress={() => handlePressMedicine(item.id)}
           />
-          <Image
-            source={{ uri: medicine.url }}
-            style={styles.image}
-            resizeMode="cover"
-          />
-          <View style={{ flex: 1, paddingLeft: 12 }}>
-            <Text style={styles.name}>{medicine.ten_thuoc}</Text>
-            <Text style={styles.subText}>{medicine.don_vi}</Text>
-            <Text style={styles.subText}>{medicine.quy_che}</Text>
-          </View>
-        </View>
-
-        {/* Mô tả ngắn */}
-        <Text style={styles.sectionTitle}>Mô tả ngắn</Text>
-        <Text style={[styles.description, styles.descriptionBox]}>
-          {medicine.mo_ta}
-        </Text>
-        <Text style={[styles.description, styles.descriptionBox]}>
-          {medicine.mo_ta}
-        </Text>
-
-        {/* Thành phần */}
-        <Text style={styles.sectionTitle}>Thành phần</Text>
-        <View style={styles.table}>
-          {/* Header */}
-          <View style={[styles.tableRow, styles.tableHeader]}>
-            <Text
-              style={[
-                styles.tableCell,
-                styles.cellWithBorder,
-                styles.tableHeaderText,
-              ]}
-            >
-            <Text
-              style={[
-                styles.tableCell,
-                styles.cellWithBorder,
-                styles.tableHeaderText,
-              ]}
-            >
-              Thành phần
-            </Text>
-            <Text
-              style={[
-                styles.tableCell,
-                styles.cellPaddingLeft,
-                styles.tableHeaderText,
-              ]}
-            >
-            <Text
-              style={[
-                styles.tableCell,
-                styles.cellPaddingLeft,
-                styles.tableHeaderText,
-              ]}
-            >
-              Hàm lượng
-            </Text>
-          </View>
-
-          {/* Rows */}
-          {medicine.Thanh_phan.map((item, idx) => (
-            <View
-              key={idx}
-              style={[
-                styles.tableRow,
-                idx % 2 === 1 ? styles.tableRowAlt : undefined,
-                idx !== medicine.Thanh_phan.length - 1 && styles.tableRowBorder,
-              ]}
-            >
-              <Text style={[styles.tableCell, styles.cellWithBorder]}>
-                {item.ten_thanh_phan}
-              </Text>
-              <Text style={[styles.tableCell, styles.cellPaddingLeft]}>
-                {item.ham_luong}
-              </Text>
-              <Text style={[styles.tableCell, styles.cellWithBorder]}>
-                {item.ten_thanh_phan}
-              </Text>
-              <Text style={[styles.tableCell, styles.cellPaddingLeft]}>
-                {item.ham_luong}
-              </Text>
-            </View>
-          ))}
-        </View>
-
-        {/* Cách dùng */}
-        <Text style={styles.sectionTitle}>Cách dùng</Text>
-        <Text style={[styles.description, styles.descriptionBox]}>
-          {medicine.cach_dung}
-        </Text>
-        <Text style={[styles.description, styles.descriptionBox]}>
-          {medicine.cach_dung}
-        </Text>
+        ))}
       </ScrollView>
+
+      {/* Dropdown menu button tròn đỏ */}
+      {selectedMedicineId && (
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={hideMenu}
+          style={styles.dropdownOverlay}
+        >
+          <View
+            style={[styles.dropdownMenu, { top: menuPos.y, left: menuPos.x }]}
+          >
+            <TouchableOpacity
+              onPress={onPressDeleteButton}
+              disabled={loadingDelete}
+              style={styles.deleteButton}
+            >
+              {loadingDelete ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : (
+                <AntDesign name="delete" size={22} color="white" />
+              )}
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      )}
+
+      {/* Confirm delete modal */}
+      <Modal
+        visible={confirmModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setConfirmModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPressOut={() => setConfirmModalVisible(false)}
+        >
+          <View style={styles.modalContent}>
+            <Text style={styles.modalText}>
+              Bạn có chắc muốn xóa thuốc này không?
+            </Text>
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                onPress={() => setConfirmModalVisible(false)}
+                style={[styles.modalButton, styles.cancelButton]}
+              >
+                <Text style={styles.modalButtonText}>Hủy</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={onConfirmDelete}
+                disabled={loadingDelete}
+                style={[styles.modalButton, styles.confirmButton]}
+              >
+                {loadingDelete ? (
+                  <ActivityIndicator color="white" />
+                ) : (
+                  <Text style={styles.modalButtonText}>Xóa</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Success banner */}
+      {showSuccessBanner && (
+        <Animated.View
+          style={[styles.successBanner, { opacity: bannerOpacity }]}
+        >
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <AntDesign name="checkcircle" size={20} color="white" />
+            <Text style={styles.successText}>{successMessage}</Text>
+          </View>
+        </Animated.View>
+      )}
+
+      {/* Bottom NavBar */}
+      <NavBar activeTab="library" iconSize={20} navigation={navigation} />
     </View>
   );
 };
@@ -237,121 +396,161 @@ const MedicineDetailLibrary = ({ navigation, route }: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "white",
     paddingHorizontal: 16,
     paddingTop: 40,
   },
   header: {
     flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 16,
   },
-  backButton: {
+  userButton: {
     padding: 8,
-    borderRadius: 12,
-    backgroundColor: "#f3f4f6",
-  },
-  editButton: {
-    padding: 8,
-    borderRadius: 12,
-    backgroundColor: "#f3f4f6",
-  },
-  headerTitleContainer: {
-    flex: 1,
-    alignItems: "center",
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#374151",
-  },
-  card: {
-    flexDirection: "row",
-    backgroundColor: "#f9f6ef",
     borderRadius: 20,
-    padding: 12,
-    marginBottom: 16,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 3,
+    backgroundColor: "#eee",
   },
-  image: {
-    width: 90,
-    height: 90,
-    borderRadius: 16,
-  },
-  name: {
-    fontWeight: "700",
-    fontSize: 18,
-    color: "#374151",
-  },
-  subText: {
-    color: "#6b7280",
+  title: {
+    fontSize: 20,
     fontWeight: "600",
-    marginTop: 4,
   },
-  sectionTitle: {
-    fontWeight: "700",
-    fontSize: 16,
-    marginBottom: 8,
-    color: "#374151",
+  addButton: {
+    padding: 8,
   },
-  description: {
-    fontSize: 14,
-    color: "#374151",
-    lineHeight: 22,
-  },
-  descriptionBox: {
-    borderWidth: 1,
-    borderColor: "rgba(209, 213, 219, 0.6)",
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 16,
-  },
-  table: {
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 16,
-    marginBottom: 16,
-    overflow: "hidden",
-  },
-  tableRow: {
+  searchContainer: {
     flexDirection: "row",
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    alignItems: "center",
+    marginBottom: 16,
   },
-  tableRowAlt: {
-    backgroundColor: "#ffffff",
-  },
-  tableRowBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: "#d1d5db",
-  },
-  tableHeader: {
-    backgroundColor: "#f3f4f6",
-  },
-  tableCell: {
+  searchBox: {
     flex: 1,
-    fontSize: 14,
-    color: "#374151",
-    paddingVertical: 4,
-    borderStyle: "solid",
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f0f0f0",
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 2,
   },
-  cellWithBorder: {
-    borderRightWidth: 1,
-    borderRightColor: "#d1d5db",
-    paddingRight: 12,
-    borderStyle: "solid",
-  },
-  cellPaddingLeft: {
-    paddingLeft: 16,
-  },
-  tableHeaderText: {
+  searchInput: { flex: 1, fontSize: 14, color: "#333" },
+  resultCount: {
+    marginBottom: 12,
     fontWeight: "600",
+    fontSize: 16,
+    color: "#000",
+  },
+  errorText: { color: "red", marginBottom: 12, textAlign: "center" },
+  dropdownOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "transparent",
+  },
+  dropdownMenu: {
+    position: "absolute",
+    width: 48,
+    height: 48,
+    backgroundColor: "white",
+    borderRadius: 24,
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 8,
+    shadowColor: "#000",
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+  },
+  deleteButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "#ef4444",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#b91c1c",
+    shadowOpacity: 0.7,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.3)",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 30,
+  },
+  modalContent: {
+    width: 260,
+    backgroundColor: "white",
+    borderRadius: 16,
+    padding: 20,
+    alignItems: "center",
+    elevation: 10,
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 5 },
+  },
+  modalText: {
+    fontSize: 17,
+    fontWeight: "600",
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  modalButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 14,
+    alignItems: "center",
+  },
+  cancelButton: {
+    marginRight: 10,
+    backgroundColor: "#6b7280",
+  },
+  confirmButton: {
+    marginLeft: 10,
+    backgroundColor: "#ef4444",
+  },
+  modalButtonText: {
+    color: "white",
+    fontWeight: "600",
+    fontSize: 15,
+  },
+  successBanner: {
+    position: "absolute",
+    bottom: 60,
+    left: 20,
+    right: 20,
+    backgroundColor: "#34d399",
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    zIndex: 100,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+    alignItems: "center",
+  },
+  successText: {
+    color: "white",
+    fontWeight: "600",
+    marginLeft: 8,
+    fontSize: 16,
   },
 });
 
-export default MedicineDetailLibrary;
-
+export default MedicineLibrary;
