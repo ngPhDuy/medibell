@@ -13,13 +13,25 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.910phuongduy2003.medibell",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
+      "permissions": [
+        "READ_EXTERNAL_STORAGE",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "CAMERA"
+      ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.tantaivo2003.medibell",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -28,14 +40,13 @@
     "extra": {
       "eas": {
         "projectId": "b5375e2e-b4b1-4fc8-8600-032434f572f9"
-      }
-    },
-    "runtimeVersion": {
-      "policy": "appVersion"
+      },
+      "sentryDsn": "https://b357d6f132e06538ac796c28a0cad7de@o4509434349879296.ingest.us.sentry.io/4509434378125312"
     },
     "updates": {
       "url": "https://u.expo.dev/b5375e2e-b4b1-4fc8-8600-032434f572f9",
       "fallbackToCacheTimeout": 0
-    }
+    },
+    "plugins": ["sentry-expo"]
   }
 }
