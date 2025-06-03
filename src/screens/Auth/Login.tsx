@@ -15,11 +15,16 @@ import CustomTextInput from "../../components/CustomTextInput";
 import CustomModal from "../../components/CustomModal";
 import { loginUser } from "../../api/Auth";
 import { useAuth } from "../../contexts/AuthContext";
+import { useNavigation } from "@react-navigation/native";
+import type { AuthStackParamList } from "./AuthStack";
+import type { StackNavigationProp } from "@react-navigation/stack";
+
+type NavigationProp = StackNavigationProp<AuthStackParamList, "Login">;
 
 const Login = () => {
   const { login } = useAuth();
-  const [phoneNumber, setPhoneNumber] = useState("123");
-  const [password, setPassword] = useState("456");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
 
   const [isSecureEntry, setIsSecureEntry] = useState(true);
   const [isModalVisible, setIsModalVisible] = useState(false); // State for modal visibility
@@ -31,13 +36,14 @@ const Login = () => {
     animationType: "fade" as "fade",
   });
   const [loading, setLoading] = useState(true);
+  const navigation = useNavigation<NavigationProp>();
 
   const handleLogin = async () => {
     setLoading(true);
-    if (phoneNumber !== "" && password !== "") {
+    if (username !== "" && password !== "") {
       console.log("Có thông tin");
       //Mẫu: 123, 456
-      const result = await loginUser(phoneNumber, password);
+      const result = await loginUser(username, password);
       setLoading(false);
       if (!result.success) {
         // Thông báo thông tin đăng nhập không đúng
@@ -66,7 +72,7 @@ const Login = () => {
 
   return (
     <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-      <View className="flex-1 justify-center items-center p-4">
+      <View className="flex-1 justify-center items-center p-4 bg-screen">
         {loading && (
           <ActivityIndicator
             size="large"
@@ -92,11 +98,10 @@ const Login = () => {
         <View className="w-full justify-center items-center mb-4 gap-2">
           {/* Phone Number Input */}
           <CustomTextInput
-            leftIcon={<AntDesign name="phone" size={16} color="#000" />}
-            placeholder="Số điện thoại"
-            keyboardType="phone-pad"
-            value={phoneNumber}
-            onChangeText={(text) => setPhoneNumber(text)}
+            leftIcon={<AntDesign name="user" size={16} color="#000" />}
+            placeholder="Tên đăng nhập"
+            value={username}
+            onChangeText={(text) => setUsername(text)}
           />
 
           {/* Password Input */}
@@ -169,7 +174,7 @@ const Login = () => {
         </TouchableOpacity>
 
         {/* Register Link */}
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate("Register")}>
           <Text className="text-center text-sm">
             Bạn chưa có tài khoản?{" "}
             <Text className="text-blue-500">Hãy đăng ký</Text>

@@ -15,13 +15,13 @@ import { Ionicons } from "@expo/vector-icons";
 import CustomTextInput from "../../components/CustomTextInput";
 import CustomModal from "../../components/CustomModal";
 import { useNavigation } from "@react-navigation/native";
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import type { RootStackParamList } from "../../navigation/AppNavigator";
+import type { AuthStackParamList } from "./AuthStack";
+import type { StackNavigationProp } from "@react-navigation/stack";
 
-type NavigationProp = NativeStackNavigationProp<RootStackParamList, "Register">;
+type NavigationProp = StackNavigationProp<AuthStackParamList, "Register">;
 
 const Register = () => {
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isSecureEntry, setIsSecureEntry] = useState(true);
@@ -37,7 +37,7 @@ const Register = () => {
   const navigation = useNavigation<NavigationProp>();
 
   const handleRegister = () => {
-    if (!phoneNumber || !password || !confirmPassword) {
+    if (!username || !password || !confirmPassword) {
       setModalProps({
         message: "Vui lòng nhập đầy đủ thông tin",
         icon: <Octicons name="shield-x" size={50} color="#ffffff" />,
@@ -60,15 +60,13 @@ const Register = () => {
     }
 
     // TODO: Thêm gọi API tạo tài khoản ở đây
-    // Ví dụ: nếu thành công thì chuyển sang Login hoặc HomePage
 
-    Alert.alert("Thông báo", "Tạo tài khoản thành công!");
     navigation.navigate("Login");
   };
 
   return (
     <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-      <View className="flex-1 justify-center items-center p-4 bg-[#FFF9E8] rounded-3xl">
+      <View className="flex-1 justify-center items-center p-4 bg-screen rounded-3xl">
         <View className="w-80 h-48 justify-center items-center relative">
           {loading && (
             <ActivityIndicator
@@ -95,11 +93,10 @@ const Register = () => {
         <View className="w-full justify-center items-center mb-4 gap-2">
           {/* Phone Number Input */}
           <CustomTextInput
-            leftIcon={<AntDesign name="phone" size={16} color="#000" />}
-            placeholder="Số điện thoại (Nhấn Enter)"
-            keyboardType="phone-pad"
-            value={phoneNumber}
-            onChangeText={setPhoneNumber}
+            leftIcon={<AntDesign name="user" size={16} color="#000" />}
+            placeholder="Tên đăng nhập"
+            value={username}
+            onChangeText={setUsername}
           />
 
           {/* Password Input */}

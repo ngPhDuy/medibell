@@ -15,6 +15,7 @@ import * as ImagePicker from "expo-image-picker";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import NavBar from "../components/NavBar";
 import CustomDropDown from "../components/CustomDropDown";
+import "../../global.css";
 
 interface ComponentItem {
   id: number;
@@ -97,19 +98,17 @@ const AddMedicine = ({ navigation }: any) => {
       !usage.trim()
     )
       return false;
-  
+
     // Kiểm tra mảng components ít nhất 1 phần tử, và mỗi phần tử có name và amount khác rỗng
     if (
       components.length === 0 ||
-      components.some(
-        (c) => !c.name.trim() || !c.amount.trim()
-      )
+      components.some((c) => !c.name.trim() || !c.amount.trim())
     )
       return false;
-  
+
     return true;
   };
-  
+
   const handleSave = async () => {
     const payload: MedicinePayload = {
       ten_thuoc: name.trim(),
@@ -124,7 +123,7 @@ const AddMedicine = ({ navigation }: any) => {
         ham_luong: c.amount.trim(),
       })),
     };
-  
+
     try {
       const response = await fetch(
         "https://medibell-be.onrender.com/api/medicines",
@@ -136,20 +135,22 @@ const AddMedicine = ({ navigation }: any) => {
           body: JSON.stringify(payload),
         }
       );
-  
+
       if (!response.ok) {
         const errorData = await response.json();
         Alert.alert("Lỗi", errorData.message || "Thêm thuốc thất bại");
         return;
       }
-  
+
       // Navigate với param successMessage
-      navigation.navigate("MedicineLibrary", { successMessage: "Thêm thuốc mới thành công" });
+      navigation.navigate("MedicineLibrary", {
+        successMessage: "Thêm thuốc mới thành công",
+      });
     } catch (error) {
       Alert.alert("Lỗi", "Không thể kết nối đến server");
     }
   };
-  
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -342,7 +343,9 @@ const AddMedicine = ({ navigation }: any) => {
         ]}
         onPress={handleSave}
       >
-        <Text style={styles.saveButtonText}>Lưu</Text>
+        <Text style={styles.saveButtonText} className="bg-primary">
+          Lưu
+        </Text>
       </TouchableOpacity>
 
       {/* NavBar */}
