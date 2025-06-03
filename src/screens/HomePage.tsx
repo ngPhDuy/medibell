@@ -21,6 +21,7 @@ import Toast from "react-native-toast-message";
 import dayjs from "dayjs";
 import AddPrescriptionModal from "../components/AddPrescriptionModal";
 import "../../global.css";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const PERIOD_CONFIG = {
   Sáng: {
@@ -108,8 +109,23 @@ const HomePage = ({ navigation }: any) => {
   };
 
   const handleSignOut = async () => {
-    await clearAsyncStorage();
-    logout();
+    try {
+      // Lưu lại giá trị hasSeenOnboarding (nếu có)
+      const onboardingValue = await AsyncStorage.getItem("hasSeenOnboarding");
+
+      // Xóa toàn bộ AsyncStorage
+      await AsyncStorage.clear();
+
+      // Đặt lại hasSeenOnboarding nếu trước đó đã xem
+      if (onboardingValue !== null) {
+        await AsyncStorage.setItem("hasSeenOnboarding", onboardingValue);
+      }
+
+      // Gọi hàm logout của bạn (ví dụ như cập nhật context hoặc chuyển trang)
+      logout();
+    } catch (error) {
+      console.error("Lỗi khi đăng xuất:", error);
+    }
   };
 
   return (

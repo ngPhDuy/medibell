@@ -35,21 +35,18 @@ export const loginUser = async (username: string, password: string) => {
   }
 };
 
-export const signupUser = async (
-  username: string,
-  password: string,
-  confirmPassword: string
-) => {
+export const signupUser = async (username: string, password: string) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/account/create`, {
+    const response = await fetch(`${API_BASE_URL}/api/users`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        username,
-        password,
-        confirmPassword,
+        ten_dang_nhap: username,
+        mat_khau: password,
+        ho_va_ten: username,
+        gioi_tinh: "nam",
       }),
     });
 

@@ -17,6 +17,7 @@ import CustomModal from "../../components/CustomModal";
 import { useNavigation } from "@react-navigation/native";
 import type { AuthStackParamList } from "./AuthStack";
 import type { StackNavigationProp } from "@react-navigation/stack";
+import { signupUser } from "../../api/Auth";
 
 type NavigationProp = StackNavigationProp<AuthStackParamList, "Register">;
 
@@ -36,7 +37,7 @@ const Register = () => {
 
   const navigation = useNavigation<NavigationProp>();
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     if (!username || !password || !confirmPassword) {
       setModalProps({
         message: "Vui lòng nhập đầy đủ thông tin",
@@ -60,8 +61,30 @@ const Register = () => {
     }
 
     // TODO: Thêm gọi API tạo tài khoản ở đây
+    const result = await signupUser(username, password);
 
-    navigation.navigate("Login");
+    if (!result.success) {
+      setModalProps({
+        message: "Tên đăng nhập đã được sử dụng",
+        icon: <Octicons name="shield-x" size={50} color="#ffffff" />,
+        bgColorClassName: "bg-error",
+        animationType: "fade",
+      });
+      setIsModalVisible(true);
+      return;
+    }
+
+    setModalProps({
+      message: "Tạo tài khoản thành công",
+      icon: <Ionicons name="checkmark-circle" size={50} color="#ffffff" />,
+      bgColorClassName: "bg-success",
+      animationType: "fade",
+    });
+    setIsModalVisible(true);
+    setTimeout(() => {
+      setIsModalVisible(false);
+      navigation.navigate("Login");
+    });
   };
 
   return (
