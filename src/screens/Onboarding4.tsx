@@ -3,12 +3,10 @@ import { View, Text, TouchableOpacity, Image } from "react-native";
 import "../../global.css";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, CommonActions } from "@react-navigation/native";
-import { useNavigation, CommonActions } from "@react-navigation/native";
 import ProgressBar from "../components/ProgressBar";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/AppNavigator";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useOnboarding } from "../contexts/OnboardingContext";
 import { useOnboarding } from "../contexts/OnboardingContext";
 
 type NavigationProp = NativeStackNavigationProp<
