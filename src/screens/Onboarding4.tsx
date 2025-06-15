@@ -18,7 +18,6 @@ const Onboarding4 = () => {
   const navigation = useNavigation<NavigationProp>();
   const id: number = 1;
   const { setHasSeenOnboarding } = useOnboarding();
-  const { setHasSeenOnboarding } = useOnboarding();
 
   const handlePress = async () => {
     console.log("Đã nhấn nút Trải nghiệm ngay");
