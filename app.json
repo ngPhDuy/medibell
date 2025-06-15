@@ -3,6 +3,7 @@
     "name": "medibell",
     "slug": "medibell",
     "version": "1.0.0",
+    "owner": "medibell_team",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -30,8 +31,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.tantaivo2003.medibell",
-      "googleServicesFile": "./google-services.json"
+      "package": "com.910phuongduy2003.medibell",
     },
     "web": {
       "favicon": "./assets/favicon.png",
